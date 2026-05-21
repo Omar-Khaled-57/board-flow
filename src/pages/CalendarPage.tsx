@@ -97,7 +97,7 @@ const CalendarPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 p-8 md:p-12 pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
         {/* Decorative elements */}
         <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-[var(--text-on-primary)] opacity-30 pointer-events-none" />
         <div className="absolute bottom-8 right-[-20px] w-32 h-32 rounded-full bg-[var(--text-on-primary)] opacity-20 pointer-events-none" />

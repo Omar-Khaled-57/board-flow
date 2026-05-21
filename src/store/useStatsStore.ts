@@ -17,7 +17,7 @@ const getTodayString = () => {
 };
 
 import { createJSONStorage } from 'zustand/middleware';
-import { tauriStorage } from './storage';
+import { getStorageAdapter } from './storage';
 
 export const useStatsStore = create<StatsState>()(
   persist(
@@ -67,7 +67,12 @@ export const useStatsStore = create<StatsState>()(
     }),
     {
       name: 'boardflow-stats',
-      storage: createJSONStorage(() => tauriStorage),
+      storage: createJSONStorage(() => getStorageAdapter()),
+      partialize: (state) => ({
+        dailyGoals: state.dailyGoals,
+        currentStreak: state.currentStreak,
+        longestStreak: state.longestStreak,
+      }),
     }
   )
 );

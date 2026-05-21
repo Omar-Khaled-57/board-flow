@@ -26,12 +26,12 @@ const NLPGuide = () => {
           <div className="space-y-3 text-sm text-gray-600 dark:text-gray-300">
             <p>Type naturally to auto-fill task details:</p>
             <ul className="space-y-2 list-none p-0 m-0">
-              <li><strong className="text-[var(--color-primary)]">Dates:</strong> "tomorrow", "next Friday", "in 2 days"</li>
+              <li><strong className="text-[var(--color-primary)]">Dates:</strong> write "tomorrow", "20 May 2027", "20/may/2027", or "20/05/27"</li>
               <li><strong className="text-purple-500">Tags:</strong> use # to add tags (e.g. "#home")</li>
               <li><strong className="text-red-500">Priority:</strong> "!!", "!high", "!med", "!low"</li>
             </ul>
             <div className="bg-gray-100 dark:bg-gray-800 p-2 rounded-md mt-2 text-xs border border-[var(--border-color)]">
-              <em>Example: "Buy milk tomorrow !! #home"</em>
+              <em>Example: "Buy milk 20/05/27 !! #home"</em>
             </div>
           </div>
         </div>

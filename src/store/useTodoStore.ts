@@ -1,10 +1,11 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Todo, Settings, Tag } from '../types';
+import { Todo, Settings, Tag, TaskList } from '../types';
 
 interface TodoState {
   todos: Todo[];
   tags: Tag[];
+  lists: TaskList[];
   settings: Settings;
   
   // Undo/Redo stacks
@@ -19,6 +20,9 @@ interface TodoState {
   reorderTodos: (startIndex: number, endIndex: number) => void;
   
   addTag: (tag: Omit<Tag, 'id'>) => void;
+  addList: (list: Omit<TaskList, 'id' | 'createdAt'>) => void;
+  deleteList: (id: string) => void;
+  renameList: (id: string, newName: string) => void;
   updateSettings: (settings: Partial<Settings>) => void;
   
   undo: () => void;
@@ -34,6 +38,7 @@ const defaultSettings: Settings = {
   notificationsEnabled: true,
   addToTop: false,
   completedToBottom: false,
+  landscapeStackedTasks: true,
 };
 
 const generateId = () => Math.random().toString(36).substring(2, 9);
@@ -49,6 +54,10 @@ export const useTodoStore = create<TodoState>()(
         { id: '1', name: 'Home', color: '#e85d5d' },
         { id: '2', name: 'Work', color: '#5b6af0' },
         { id: '3', name: 'School', color: '#3cb878' },
+      ],
+      lists: [
+        { id: '1', name: 'My Tasks', color: '#5b6af0', createdAt: Date.now() },
+        { id: '2', name: 'Shopping', color: '#e85d5d', createdAt: Date.now() },
       ],
       settings: defaultSettings,
       past: [],
@@ -113,6 +122,19 @@ export const useTodoStore = create<TodoState>()(
         tags: [...state.tags, { ...tagData, id: generateId() }]
       })),
 
+      addList: (listData) => set((state) => ({
+        lists: [...state.lists, { ...listData, id: generateId(), createdAt: Date.now() }]
+      })),
+
+      deleteList: (id) => set((state) => ({
+        lists: state.lists.filter(l => l.id !== id),
+        todos: state.todos.map(t => t.listId === id ? { ...t, listId: undefined } : t)
+      })),
+
+      renameList: (id, newName) => set((state) => ({
+        lists: state.lists.map(l => l.id === id ? { ...l, name: newName } : l)
+      })),
+
       updateSettings: (newSettings) => set((state) => ({
         settings: { ...state.settings, ...newSettings }
       })),
@@ -145,6 +167,7 @@ export const useTodoStore = create<TodoState>()(
       partialize: (state) => ({
         todos: state.todos,
         tags: state.tags,
+        lists: state.lists,
         settings: state.settings,
       }), // don't persist undo/redo history
     }

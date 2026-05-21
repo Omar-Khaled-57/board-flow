@@ -6,9 +6,12 @@ import { Sparkles } from 'lucide-react';
 interface TodoListProps {
   searchQuery?: string;
   filter?: 'all' | 'active' | 'completed';
+  tagFilter?: string;
+  showUnlistedOnly?: boolean;
+  listId?: string;
 }
 
-const TodoList = ({ searchQuery = '', filter = 'all' }: TodoListProps) => {
+const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnly = false, listId }: TodoListProps) => {
   const todos = useTodoStore(state => state.todos);
   const settings = useTodoStore(state => state.settings);
   const reorderTodos = useTodoStore(state => state.reorderTodos);
@@ -51,6 +54,17 @@ const TodoList = ({ searchQuery = '', filter = 'all' }: TodoListProps) => {
 
   // Filtering
   const filteredTodos = todos.filter(todo => {
+    // list filter
+    if (listId && todo.listId !== listId) {
+      return false;
+    }
+    // task list tab filter
+    if (tagFilter && !todo.tags.includes(tagFilter)) {
+      return false;
+    }
+    if (showUnlistedOnly && todo.listId) {
+      return false;
+    }
     // text search
     if (searchQuery.trim() && !todo.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
@@ -80,11 +94,25 @@ const TodoList = ({ searchQuery = '', filter = 'all' }: TodoListProps) => {
         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
           <Sparkles size={40} className="text-primary" />
         </div>
-        <h3 className="text-xl font-bold text-(--text-primary) mb-2">You're all caught up!</h3>
-        <p className="max-w-xs text-sm">
-          Type naturally above to add a task, for example: <br/>
-          <span className="italic text-(--text-primary)">"Review pull requests tomorrow at 10am"</span>
-        </p>
+        <h3 className="text-xl font-bold text-(--text-primary) mb-3">No tasks right now</h3>
+        <div className="mx-auto flex max-w-sm flex-col items-center gap-2 text-center text-sm leading-6">
+          <p>Type naturally to auto-fill task details:</p>
+          <p className="max-w-xs">
+            <strong className="text-primary">Dates:</strong>{' '}
+            write "tomorrow", "20 May 2027", "20/may/2027", or "20/05/27".
+          </p>
+          <p className="max-w-xs">
+            <strong className="text-purple-500">Tags:</strong>{' '}
+            use # to add tags, like "#home".
+          </p>
+          <p className="max-w-xs">
+            <strong className="text-red-500">Priority:</strong>{' '}
+            use "!!", "!high", "!med", or "!low".
+          </p>
+          <div className="mt-1 w-full rounded-full border border-(--border-color) bg-(--bg-color) px-4 py-2 text-center text-xs text-(--text-primary)">
+            <em>Example: "Buy milk 20/05/27 !! #home"</em>
+          </div>
+        </div>
       </div>
     );
   }

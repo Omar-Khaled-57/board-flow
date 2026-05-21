@@ -6,6 +6,13 @@ export interface Tag {
   color: string;
 }
 
+export interface TaskList {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: number;
+}
+
 export interface Subtask {
   id: string;
   title: string;
@@ -20,6 +27,7 @@ export interface Todo {
   dueDate?: number;
   priority: Priority;
   tags: string[];
+  listId?: string; // belongs to a specific list
   subtasks: Subtask[];
   attachments?: string[]; // paths to local files
   notified?: boolean;
@@ -33,6 +41,7 @@ export interface Settings {
   notificationsEnabled: boolean;
   addToTop: boolean;
   completedToBottom: boolean;
+  landscapeStackedTasks: boolean;
 }
 
 export interface DailyGoal {

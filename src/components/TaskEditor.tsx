@@ -2,10 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { PlusCircle, Calendar, Tag as TagIcon, Flag } from 'lucide-react';
 import { useTodoStore } from '../store/useTodoStore';
 import { parseTaskInput } from '../utils/nlp';
-import { format } from 'date-fns';
+import { formatTaskDate } from '../utils/dateFormat';
 import NLPGuide from './NLPGuide';
 
-const TaskEditor = () => {
+interface TaskEditorProps {
+  listId?: string;
+}
+
+const TaskEditor = ({ listId }: TaskEditorProps) => {
   const [input, setInput] = useState('');
   const [debouncedInput, setDebouncedInput] = useState('');
   const addTodo = useTodoStore((state) => state.addTodo);
@@ -29,6 +33,7 @@ const TaskEditor = () => {
       dueDate: finalParsed.dueDate,
       priority: finalParsed.priority,
       tags: finalParsed.tags,
+      listId,
       completed: false,
       subtasks: [],
     });
@@ -63,7 +68,7 @@ const TaskEditor = () => {
             {parsed.dueDate && (
               <div className="flex items-center gap-1 text-[var(--color-primary)] bg-[var(--color-primary-light)] dark:bg-primary/20 px-2 py-1 rounded-md">
                 <Calendar size={14} />
-                <span>{format(parsed.dueDate, 'MMM d, h:mm a')}</span>
+                <span>{formatTaskDate(parsed.dueDate)}</span>
               </div>
             )}
             

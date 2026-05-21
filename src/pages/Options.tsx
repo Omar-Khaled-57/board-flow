@@ -1,5 +1,4 @@
 import { useTodoStore } from '../store/useTodoStore';
-import { Settings } from '../types';
 import { Sun, Moon, Monitor } from 'lucide-react';
 
 const Options = () => {
@@ -17,9 +16,15 @@ const Options = () => {
     return currentTheme === 'dark' ? '#ffffff' : '#111827';
   };
 
+  const getSwatchBorderColor = (color: string) => {
+    if (settings.accentColor !== color) return 'transparent';
+    if (color !== '#f5f5f5') return 'var(--text-primary)';
+    return '#f59e0b';
+  };
+
   return (
     <div className="h-full flex flex-col gap-6">
-      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 p-8 md:p-12 pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
+      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
         {/* Decorative elements */}
         <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
         <div className="absolute bottom-8 -right-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
@@ -74,8 +79,12 @@ const Options = () => {
                     key={color}
                     onClick={() => updateSettings({ accentColor: color })}
                     aria-label={`Select accent color ${color}`}
-                    className={`w-10 h-10 rounded-full border-2 transition-transform hover:scale-110 ${settings.accentColor === color ? 'border-[var(--text-primary)] scale-110' : 'border-transparent'}`}
-                    style={{ backgroundColor: getDisplayColor(color) }}
+                    className={`w-10 h-10 rounded-full border-2 transition-all hover:scale-110 ${settings.accentColor === color ? 'scale-110' : ''}`}
+                    style={{
+                      backgroundColor: getDisplayColor(color),
+                      borderColor: getSwatchBorderColor(color),
+                      boxShadow: settings.accentColor === color && color === '#f5f5f5' ? '0 0 0 3px rgba(245, 158, 11, 0.28)' : undefined,
+                    }}
                   />
                 ))}
               </div>
@@ -106,6 +115,20 @@ const Options = () => {
                 checked={settings.completedToBottom}
                 onChange={e => updateSettings({ completedToBottom: e.target.checked })}
                 className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+              />
+            </div>
+
+            <div className="hidden landscape:flex items-center justify-between gap-4">
+              <div>
+                <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Stack composer above tasks</label>
+                <p className="text-xs text-(--text-secondary) opacity-75">Landscape only. Turn off to use the split composer/list layout.</p>
+              </div>
+              <input
+                title="Stack composer above tasks in landscape"
+                type="checkbox"
+                checked={settings.landscapeStackedTasks ?? true}
+                onChange={e => updateSettings({ landscapeStackedTasks: e.target.checked })}
+                className="w-6 h-6 shrink-0 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
             

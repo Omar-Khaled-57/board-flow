@@ -3,7 +3,7 @@ import { Todo } from '../types';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
 import { Calendar, Tag as TagIcon, Flag, Trash2, CheckCircle2, Circle, GripVertical } from 'lucide-react';
-import { format } from 'date-fns';
+import { formatTaskDate } from '../utils/dateFormat';
 import { marked } from 'marked';
 import clsx from 'clsx';
 import { playCompleteSound } from '../utils/audio';
@@ -79,7 +79,7 @@ const TaskItem = ({ task, onDragStart, onDragOver, onDrop, onDragEnd, isDragging
                 : "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400"
             )}>
               <Calendar size={12} />
-              <span>{format(task.dueDate, 'MMM d, h:mm a')}</span>
+              <span>{formatTaskDate(task.dueDate)}</span>
             </div>
           )}
 

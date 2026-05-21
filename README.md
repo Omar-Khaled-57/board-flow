@@ -2,7 +2,7 @@
 
 # 📋 BoardFlow
 
-**A premium, native-feeling, cross-platform task management application.**
+**A hybrid native task management app built with React + Tauri.**
 
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-24C8DB?logo=tauri&logoColor=white)](#)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](#)
@@ -15,36 +15,44 @@
 
 <br />
 
-BoardFlow is designed to provide a frictionless user experience across all your devices, combining the performance of a native app with the flexibility of modern web technologies. 
+BoardFlow is a React web frontend packaged with Tauri to run as a native desktop/mobile application. It is not a browser-only PWA; the app is distributed through the Tauri shell with native installers and mobile bundles.
+
+---
+
+## ✨ What this app is
+
+- ✅ A **hybrid native application** using a web UI with a native shell
+- ✅ Built for **desktop platforms** via Tauri (Windows, Linux, macOS)
+- ✅ Supports **mobile packaging** through the Tauri Android/iOS toolchain
+- ✅ Uses **local native storage** rather than relying on browser storage
+- ✅ Not a pure PWA or browser-only app
 
 ---
 
 ## ✨ Key Features
 
-- 🌍 **Cross-Platform**: A single unified codebase that runs seamlessly on desktop (**Windows, Linux, macOS**) and mobile (**Android, iOS**).
-- 🎨 **Adaptive UI**: Responsive layouts tailored for both desktop environments (sleek sidebar navigation) and mobile environments (native-feeling bottom navigation bar).
-- 💾 **Offline-First Storage**: Persistent, highly efficient state management using the Tauri local store adapter (`boardflow.dat`). Your data is kept secure on the native file system, not in a volatile browser cache.
-- 🧠 **Natural Language Input**: Integrated NLP support allowing you to create tasks effortlessly using conversational language (e.g., *"Meeting with team tomorrow at 5pm"*).
-- ⏪ **Forgiving User Experience**: Built-in Undo/Redo architecture featuring a non-intrusive `UndoSnackbar` to prevent friction from destructive actions.
-- 🌓 **Dynamic Theming**: Native support for dark and light modes, respecting your system preferences out of the box.
-- 📊 **Rich Views**: Integrated Calendar and Statistics views to help you visualize your productivity over time.
-- 🔔 **Native Notifications**: Seamless integration with your OS's native notification system for task reminders.
+- 🌍 **Hybrid Native App**: Single codebase with native desktop/mobile Tauri packaging.
+- 🎨 **Responsive UI**: Desktop sidebar navigation switches to mobile bottom navigation on smaller screens.
+- 💾 **Native storage**: Uses Tauri store for reliable local persistence.
+- 🧠 **NLP-friendly task entry**: Supports natural-language style task creation.
+- ⏪ **Undo/Redo support**: Includes undo/redo flows with a subtle snackbar.
+- 🌓 **Theme-aware UI**: Dark/light theming with smooth transitions.
+- 📊 **Calendar + Stats**: Built-in calendar and productivity statistics views.
+- 🔔 **Native notifications**: Uses OS notification capabilities through Tauri plugins.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🛠️ Tech Stack
 
-BoardFlow is built on the bleeding edge of web and systems programming:
-
-| Category | Technology | Description |
+| Category | Technology | Notes |
 | :--- | :--- | :--- |
-| **Framework** | [Tauri v2](https://v2.tauri.app/) | Replaces Electron. Uses native OS webviews for minimal memory footprint and blistering startup times. |
-| **Frontend** | [React 19](https://react.dev/) | The latest concurrent React features for buttery-smooth rendering. |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) | Strict type-safety across the entire frontend. |
-| **Build Tool** | [Vite](https://vitejs.dev/) | Lightning-fast HMR and optimized production builds. |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Utility-first CSS for rapid, responsive UI development. |
-| **State** | [Zustand](https://github.com/pmndrs/zustand) | Minimalist, unopinionated state management tailored for our offline-first storage adapter. |
-| **Icons** | [Lucide React](https://lucide.dev/) | Beautiful, consistent iconography. |
+| App Shell | Tauri v2 | Native wrapper for web UI and cross-platform distribution |
+| Frontend | React 19 | Modern React UI and routing |
+| Language | TypeScript | Strong typing for frontend logic |
+| Bundler | Vite | Fast development and production builds |
+| Styling | Tailwind CSS v4 | Utility CSS with rapid responsive styling |
+| State | Zustand | Lightweight global state and persistence |
+| Icons | Lucide React | Simple, consistent icon library |
 
 ---
 
@@ -52,38 +60,39 @@ BoardFlow is built on the bleeding edge of web and systems programming:
 
 ### Prerequisites
 
-Ensure you have the following installed to develop and build the application:
-- [Node.js](https://nodejs.org/) (v18+)
-- [Rust](https://www.rust-lang.org/tools/install) (latest stable)
-- **For Windows**: Visual Studio C++ Build Tools
-- **For Android**: Android Studio & Android SDK
-- **For iOS/macOS**: macOS with Xcode
+- Node.js 18+
+- Rust (stable)
+- Windows: Visual Studio C++ Build Tools
+- Android: Android Studio + SDK
+- iOS/macOS: Xcode
 
-### Installation
+### Install
 
-1. **Clone the repository and install dependencies:**
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
-2. **Start the development server:**
-   *(This launches both the Vite dev server and the native Tauri window)*
-   ```bash
-   npm run tauri dev
-   ```
-   *(Alternatively, to run the web frontend in your browser only)*:
-   ```bash
-   npm run dev
-   ```
+### Run locally
 
-### Building for Production
+```bash
+npm run tauri dev
+```
 
-To build the application for your current host platform:
+This launches the Tauri app with the Vite frontend.
+
+To run the web frontend only:
+
+```bash
+npm run dev
+```
+
+### Build
+
 ```bash
 npm run tauri build
 ```
-This compiles the Rust backend and generates native installers/bundles (e.g., `.msi` / `.exe` for Windows). 
-> **Note:** To build for mobile targets, you would use `npm run tauri android build` or `npm run tauri ios build`.
+
+This creates native desktop bundles. Mobile builds are available via Tauri mobile targets.
 
 ---
 
@@ -91,17 +100,21 @@ This compiles the Rust backend and generates native installers/bundles (e.g., `.
 
 ```text
 📦 BoardFlow
- ┣ 📂 src               # Frontend React application
- ┃ ┣ 📂 components      # Reusable UI components (Layout, TaskEditor, etc.)
- ┃ ┣ 📂 pages           # Main application views (Home, Calendar, Stats, Options)
- ┃ ┣ 📂 store           # Zustand state management and Tauri storage adapters
- ┃ ┗ 📂 utils           # Helper functions, NLP logic, Audio/Notifications
- ┣ 📂 src-tauri         # Tauri Rust backend, configurations, and build settings
- ┗ 📂 dev               # Development resources and analysis reports
+ ┣ 📂 src               # React frontend
+ ┃ ┣ 📂 components      # Shared UI components
+ ┃ ┣ 📂 pages           # App screens (Tasks, Calendar, Stats, Options)
+ ┃ ┣ 📂 store           # Zustand state + Tauri storage logic
+ ┃ ┗ 📂 utils           # Helpers, NLP, notifications, audio
+ ┣ 📂 src-tauri         # Tauri backend and build configuration
+ ┗ 📂 dev               # Development notes and analysis files
 ```
 
 ---
 
 <div align="center">
-  <i>Built with ❤️ using Tauri and React.</i>
+  <i>Built with ❤️ by Omar Khaled Elkhouly.</i>
+</div>
+
+<div align="center" class="mt-4 text-sm text-[#6b7280]">
+  © 2026 Omar Khaled Elkhouly — created by Omar-Khaled-57 on GitHub.
 </div>
