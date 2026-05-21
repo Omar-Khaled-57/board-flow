@@ -112,9 +112,9 @@ This creates native desktop bundles. Mobile builds are available via Tauri mobil
 ---
 
 <div align="center">
-  <i>Built with ❤️ by Omar Khaled Elkhouly.</i>
+  <i>Built with 🫩 by Omar Khaled El-Khouly.</i>
 </div>
 
 <div align="center" class="mt-4 text-sm text-[#6b7280]">
-  © 2026 Omar Khaled Elkhouly — created by Omar-Khaled-57 on GitHub.
+  © 2026 Omar Khaled El-Khouly — created by Omar-Khaled-57 on GitHub.
 </div>
