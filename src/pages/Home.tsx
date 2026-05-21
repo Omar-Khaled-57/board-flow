@@ -160,7 +160,7 @@ const Home = () => {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`relative z-10 min-w-0 px-4 py-2 text-sm rounded-full capitalize font-bold transition-colors duration-200 shadow-none ${
+                  className={`relative z-10 min-w-0 px-4 py-2 text-[clamp(0.8rem,1.6vw,1rem)] sm:text-sm rounded-full capitalize font-bold transition-colors duration-200 shadow-none truncate ${
                     filter === f
                       ? 'bg-transparent text-[var(--text-on-primary)]'
                       : 'bg-transparent text-primary hover:bg-primary/10'

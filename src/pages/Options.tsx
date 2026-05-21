@@ -18,8 +18,18 @@ const Options = () => {
 
   const getSwatchBorderColor = (color: string) => {
     if (settings.accentColor !== color) return 'transparent';
-    if (color !== '#f5f5f5') return 'var(--text-primary)';
-    return '#f59e0b';
+    return 'var(--text-primary)';
+  };
+
+  const getSwatchBoxShadow = (color: string) => {
+    if (settings.accentColor !== color) return undefined;
+
+    const hex = color.replace('#', '');
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+
+    return `0 0 0 3px rgba(${r}, ${g}, ${b}, 0.28)`;
   };
 
   return (
@@ -83,7 +93,7 @@ const Options = () => {
                     style={{
                       backgroundColor: getDisplayColor(color),
                       borderColor: getSwatchBorderColor(color),
-                      boxShadow: settings.accentColor === color && color === '#f5f5f5' ? '0 0 0 3px rgba(245, 158, 11, 0.28)' : undefined,
+                      boxShadow: getSwatchBoxShadow(color),
                     }}
                   />
                 ))}
