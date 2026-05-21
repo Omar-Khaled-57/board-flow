@@ -25,6 +25,7 @@ dist-ssr
 
 #Extra
 /dev
+/target
 
 # Environment variables
 .env

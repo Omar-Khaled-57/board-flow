@@ -19,12 +19,12 @@ const Layout = () => {
   return (
     <div className="flex min-h-screen bg-(--bg-color) text-(--text-primary)">
       {/* Sidebar for desktop / large tablets */}
-      <nav className="hidden md:flex w-20 lg:w-64 bg-(--card-bg) border-r border-(--border-color) flex-col transition-all duration-300">
-        <div className="p-4 flex items-center justify-center md:justify-start gap-3 border-b border-(--border-color) mb-4">
-          <div className="w-8 h-8 rounded-lg bg-primary text-white flex items-center justify-center font-bold">
+      <nav className="hidden md:flex w-20 lg:w-64 shrink-0 bg-(--card-bg) border-r border-(--border-color) flex-col transition-all duration-300">
+        <div className="p-4 flex items-center justify-center lg:justify-start gap-3 border-b border-(--border-color) mb-6">
+          <div className="w-8 h-8 shrink-0 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm shadow-sm shadow-primary/30">
             BF
           </div>
-          <span className="hidden md:block font-bold text-xl tracking-tight">BoardFlow</span>
+          <span className="hidden lg:block font-bold text-xl tracking-tight">BoardFlow</span>
         </div>
 
         <div className="flex-1 px-3 space-y-2">
@@ -33,15 +33,15 @@ const Layout = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center p-3 rounded-xl transition-all duration-200 ${
+                `flex items-center p-3 rounded-2xl transition-all duration-200 ${
                   isActive
-                    ? 'bg-primary-light text-primary dark:bg-primary/20 dark:text-primary font-medium'
+                    ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-[#8E9BFF] font-medium shadow-sm'
                     : 'text-(--text-secondary) hover:bg-(--bg-color) hover:text-(--text-primary)'
                 }`
               }
             >
               <item.icon size={22} className="shrink-0" />
-              <span className="hidden md:block ml-3">{item.label}</span>
+              <span className="hidden lg:block ml-3">{item.label}</span>
             </NavLink>
           ))}
         </div>

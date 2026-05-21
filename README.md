@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌊 BoardFlow
+# 📋 BoardFlow
 
 **A premium, native-feeling, cross-platform task management application.**
 

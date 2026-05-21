@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import TaskEditor from '../components/TaskEditor';
 import TodoList from '../components/TodoList';
-import { Search } from 'lucide-react';
+import { Search, Tag } from 'lucide-react';
+import { useTodoStore } from '../store/useTodoStore';
 
 const Home = () => {
+  const todos = useTodoStore(state => state.todos);
+  const allTags = Array.from(new Set(todos.flatMap(t => t.tags)));
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
 
@@ -17,29 +20,49 @@ const Home = () => {
           <p className="text-(--text-secondary) mt-1">Stay organized, stay productive</p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-secondary)" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search tasks..." 
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 rounded-lg bg-(--card-bg) border border-(--border-color) text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none w-full md:w-48"
-            />
+        <div className="flex flex-col w-full md:w-auto items-stretch md:items-end gap-3 mt-4 md:mt-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1 sm:flex-none">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-secondary)" size={16} />
+              <input 
+                type="text" 
+                placeholder="Search tasks..." 
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-9 pr-4 py-2 rounded-xl bg-(--card-bg) border border-(--border-color) text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none w-full sm:w-48 transition-shadow shadow-sm"
+              />
+            </div>
+            
+            <div className="flex items-center bg-(--card-bg) border border-(--border-color) rounded-xl p-1 w-full sm:w-auto shadow-sm">
+              {(['all', 'active', 'completed'] as const).map(f => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`flex-1 sm:flex-none px-3 py-1.5 text-sm rounded-lg capitalize transition-colors ${filter === f ? 'bg-primary text-white font-medium shadow-sm' : 'text-(--text-secondary) hover:text-(--text-primary) hover:bg-gray-50 dark:hover:bg-gray-800/50'}`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
           
-          <div className="flex items-center bg-(--card-bg) border border-(--border-color) rounded-lg p-1">
-            {(['all', 'active', 'completed'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-1 text-sm rounded-md capitalize transition-colors ${filter === f ? 'bg-primary text-white' : 'text-(--text-secondary) hover:text-(--text-primary)'}`}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+          {allTags.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 w-full md:justify-end">
+              <Tag size={12} className="text-(--text-secondary)" />
+              {allTags.slice(0, 5).map(tag => (
+                <button 
+                  key={tag}
+                  onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
+                  className={`text-[11px] px-2 py-1 rounded-lg transition-colors border ${searchQuery === tag ? 'bg-primary text-white border-primary shadow-sm' : 'bg-(--card-bg) text-(--text-secondary) border-(--border-color) hover:border-primary/50'}`}
+                >
+                  {tag}
+                </button>
+              ))}
+              {allTags.length > 5 && (
+                <span className="text-xs text-(--text-secondary)">+{allTags.length - 5}</span>
+              )}
+            </div>
+          )}
         </div>
       </header>
       
