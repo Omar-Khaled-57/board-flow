@@ -39,7 +39,7 @@ const defaultSettings: Settings = {
 const generateId = () => Math.random().toString(36).substring(2, 9);
 
 import { createJSONStorage } from 'zustand/middleware';
-import { tauriStorage } from './storage';
+import { getStorageAdapter } from './storage';
 
 export const useTodoStore = create<TodoState>()(
   persist(
@@ -141,7 +141,7 @@ export const useTodoStore = create<TodoState>()(
     }),
     {
       name: 'boardflow-storage',
-      storage: createJSONStorage(() => tauriStorage),
+      storage: createJSONStorage(() => getStorageAdapter()),
       partialize: (state) => ({
         todos: state.todos,
         tags: state.tags,

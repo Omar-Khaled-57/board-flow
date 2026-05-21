@@ -1,5 +1,7 @@
 import { Store } from '@tauri-apps/plugin-store';
 
+const isTauriAvailable = typeof window !== 'undefined' && typeof (window as any).__TAURI_IPC__ !== 'undefined';
+
 // We load the store asynchronously but we can await it inside the adapter methods
 const getStore = async () => {
   return await Store.load('boardflow.dat');
@@ -35,3 +37,31 @@ export const tauriStorage = {
     }
   }
 };
+
+export const localStorageAdapter = {
+  getItem: async (name: string): Promise<string | null> => {
+    try {
+      return window.localStorage.getItem(name);
+    } catch (e) {
+      console.error('Error reading from localStorage:', e);
+      return null;
+    }
+  },
+  setItem: async (name: string, value: string): Promise<void> => {
+    try {
+      window.localStorage.setItem(name, value);
+    } catch (e) {
+      console.error('Error writing to localStorage:', e);
+    }
+  },
+  removeItem: async (name: string): Promise<void> => {
+    try {
+      window.localStorage.removeItem(name);
+    } catch (e) {
+      console.error('Error removing from localStorage:', e);
+    }
+  }
+};
+
+export const getStorageAdapter = () => isTauriAvailable ? tauriStorage : localStorageAdapter;
+
