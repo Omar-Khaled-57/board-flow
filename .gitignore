@@ -23,9 +23,15 @@ dist-ssr
 *.sln
 *.sw?
 
-#Extra
-/dev
-/target
+# Extra
+dev/
+
+# Keep Tauri/Cargo build artifacts ignored
+target/
+
+# Android build outputs
+app-release.apk
+app-release.apk.idsig
 
 # Environment variables
 .env

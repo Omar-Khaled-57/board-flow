@@ -36,7 +36,7 @@ const Layout = () => {
             <button
               type="button"
               onClick={() => setIsSidebarExpanded(open => !open)}
-              className="w-10 h-10 shrink-0 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-black text-lg shadow-none transition-all hover:bg-primary hover:text-[var(--text-on-primary)]"
+              className="w-10 h-10 shrink-0 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-black text-lg shadow-none transition-all hover:bg-primary hover:text-(--text-on-primary)"
               aria-label={isSidebarExpanded ? 'Collapse navigation' : 'Expand navigation'}
               aria-expanded={isSidebarExpanded}
             >

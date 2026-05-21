@@ -51,7 +51,7 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        className="w-full pl-12 pr-12 py-4 rounded-[2rem] bg-[var(--card-bg)] border border-black dark:border-white shadow-[0_0_15px_var(--color-primary)] focus:shadow-[0_0_25px_var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-lg placeholder:text-gray-400 dark:placeholder:text-gray-600"
+        className="w-full pl-12 pr-12 py-4 rounded-[2rem] bg-(--card-bg) border border-black dark:border-white shadow-[0_0_15px_var(--color-primary)] focus:shadow-[0_0_25px_var(--color-primary)] focus:border-(--color-primary) outline-none transition-all text-lg placeholder:text-gray-400 dark:placeholder:text-gray-600"
         placeholder="Add a task... (e.g., 'Buy milk tomorrow !! #home')"
       />
       
@@ -59,14 +59,14 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
 
       {/* Smart Preview Area */}
       {debouncedInput.trim() && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-[var(--card-bg)] border border-[var(--border-color)] rounded-lg shadow-lg p-3 flex items-center gap-3 text-sm z-10 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex-1 font-medium truncate text-[var(--text-primary)]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-(--card-bg) border border-(--border-color) rounded-lg shadow-lg p-3 flex items-center gap-3 text-sm z-10 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex-1 font-medium truncate text-(--text-primary)">
             {parsed.title || '...'}
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
             {parsed.dueDate && (
-              <div className="flex items-center gap-1 text-[var(--color-primary)] bg-[var(--color-primary-light)] dark:bg-primary/20 px-2 py-1 rounded-md">
+              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:bg-primary/20 px-2 py-1 rounded-md">
                 <Calendar size={14} />
                 <span>{formatTaskDate(parsed.dueDate)}</span>
               </div>
