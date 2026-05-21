@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { useTodoStore } from '../store/useTodoStore';
 import TaskItem from './TaskItem';
+import { Sparkles } from 'lucide-react';
 
 interface TodoListProps {
   searchQuery?: string;
@@ -9,6 +11,43 @@ interface TodoListProps {
 const TodoList = ({ searchQuery = '', filter = 'all' }: TodoListProps) => {
   const todos = useTodoStore(state => state.todos);
   const settings = useTodoStore(state => state.settings);
+  const reorderTodos = useTodoStore(state => state.reorderTodos);
+  
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    setDraggedId(id);
+    e.dataTransfer.effectAllowed = 'move';
+    // Transparent image for drag ghost to avoid default browser ghost
+    const img = new Image();
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    e.dataTransfer.setDragImage(img, 0, 0);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    if (!draggedId || draggedId === targetId) {
+      setDraggedId(null);
+      return;
+    }
+    
+    const sourceIndex = todos.findIndex(t => t.id === draggedId);
+    const targetIndex = todos.findIndex(t => t.id === targetId);
+    
+    if (sourceIndex !== -1 && targetIndex !== -1) {
+      reorderTodos(sourceIndex, targetIndex);
+    }
+    setDraggedId(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedId(null);
+  };
 
   // Filtering
   const filteredTodos = todos.filter(todo => {
@@ -39,7 +78,7 @@ const TodoList = ({ searchQuery = '', filter = 'all' }: TodoListProps) => {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center text-(--text-secondary)">
         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-          <span className="text-4xl">✨</span>
+          <Sparkles size={40} className="text-primary" />
         </div>
         <h3 className="text-xl font-bold text-(--text-primary) mb-2">You're all caught up!</h3>
         <p className="max-w-xs text-sm">
@@ -63,7 +102,15 @@ const TodoList = ({ searchQuery = '', filter = 'all' }: TodoListProps) => {
   return (
     <div className="flex flex-col gap-3">
       {sortedTodos.map(todo => (
-        <TaskItem key={todo.id} task={todo} />
+        <TaskItem 
+          key={todo.id} 
+          task={todo} 
+          isDragging={draggedId === todo.id}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDrop={handleDrop}
+          onDragEnd={handleDragEnd}
+        />
       ))}
     </div>
   );

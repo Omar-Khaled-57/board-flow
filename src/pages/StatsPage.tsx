@@ -43,9 +43,18 @@ const StatsPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <header>
-        <h1 className="text-3xl font-bold">Statistics</h1>
-        <p className="text-(--text-secondary) mt-1">Track your productivity</p>
+      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 p-8 md:p-12 pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
+        {/* Decorative elements */}
+        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-[var(--text-on-primary)] opacity-30 pointer-events-none" />
+        <div className="absolute bottom-8 right-[-20px] w-32 h-32 rounded-full bg-[var(--text-on-primary)] opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-[var(--text-on-primary)] opacity-10 pointer-events-none" />
+
+        <div className="z-10 relative">
+          <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-[var(--text-on-primary)]">
+            Statistics
+          </h1>
+          <p className="mt-2 font-medium text-[var(--text-on-primary)] opacity-80">Track your productivity and crush goals.</p>
+        </div>
       </header>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

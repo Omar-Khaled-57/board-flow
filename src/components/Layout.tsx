@@ -19,29 +19,38 @@ const Layout = () => {
   return (
     <div className="flex min-h-screen bg-(--bg-color) text-(--text-primary)">
       {/* Sidebar for desktop / large tablets */}
-      <nav className="hidden md:flex w-20 lg:w-64 shrink-0 bg-(--card-bg) border-r border-(--border-color) flex-col transition-all duration-300">
-        <div className="p-4 flex items-center justify-center lg:justify-start gap-3 border-b border-(--border-color) mb-6">
-          <div className="w-8 h-8 shrink-0 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-sm shadow-sm shadow-primary/30">
+      <nav className="hidden md:flex w-20 lg:w-64 shrink-0 bg-(--card-bg) border-r border-(--border-color) flex-col transition-all duration-300 shadow-md">
+        <div className="p-4 flex items-center justify-center lg:justify-start gap-3 border-b border-(--border-color) mb-2">
+          <div className="w-10 h-10 shrink-0 rounded-2xl bg-primary/20 text-primary flex items-center justify-center font-black text-lg shadow-sm">
             BF
           </div>
-          <span className="hidden lg:block font-bold text-xl tracking-tight">BoardFlow</span>
+          <span className="hidden lg:block font-black text-2xl tracking-tight text-primary">
+            Board<span className="text-(--text-primary)">Flow</span>
+          </span>
         </div>
 
-        <div className="flex-1 px-3 space-y-2">
+        <div className="flex-1 px-3 space-y-2 mt-4">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center p-3 rounded-2xl transition-all duration-200 ${
+                `flex items-center p-3 rounded-2xl transition-all duration-200 relative group overflow-hidden ${
                   isActive
-                    ? 'bg-primary/10 text-primary dark:bg-primary/20 dark:text-[#8E9BFF] font-medium shadow-sm'
-                    : 'text-(--text-secondary) hover:bg-(--bg-color) hover:text-(--text-primary)'
+                    ? 'bg-primary/10 text-primary font-bold shadow-sm'
+                    : 'text-(--text-secondary) hover:bg-white/50 dark:hover:bg-white/5 hover:text-(--text-primary) font-medium'
                 }`
               }
             >
-              <item.icon size={22} className="shrink-0" />
-              <span className="hidden lg:block ml-3">{item.label}</span>
+              {({ isActive }) => (
+                <>
+                  <item.icon size={22} className={`shrink-0 z-10 transition-colors ${isActive ? "text-primary" : "group-hover:text-primary/70"}`} />
+                  <span className={`hidden lg:block ml-3 z-10 transition-colors ${isActive ? "text-primary" : "group-hover:text-primary/70"}`}>{item.label}</span>
+                  {isActive && (
+                    <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-r-full" />
+                  )}
+                </>
+              )}
             </NavLink>
           ))}
         </div>
@@ -56,7 +65,7 @@ const Layout = () => {
         </main>
 
         {/* Bottom navigation for mobile */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-(--card-bg) border-t border-(--border-color) shadow-[0_-1px_0_rgba(0,0,0,0.05)]">
+        <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-(--card-bg) border-t border-(--border-color) shadow-md">
           <div className="flex items-center justify-between px-2 py-2">
             {navItems.map((item) => (
               <NavLink

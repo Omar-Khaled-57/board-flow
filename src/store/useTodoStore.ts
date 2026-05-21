@@ -16,6 +16,7 @@ interface TodoState {
   updateTodo: (id: string, updates: Partial<Todo>) => void;
   deleteTodo: (id: string) => void;
   toggleTodo: (id: string) => void;
+  reorderTodos: (startIndex: number, endIndex: number) => void;
   
   addTag: (tag: Omit<Tag, 'id'>) => void;
   updateSettings: (settings: Partial<Settings>) => void;
@@ -90,6 +91,17 @@ export const useTodoStore = create<TodoState>()(
 
       toggleTodo: (id) => set((state) => {
         const newTodos = state.todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+        return {
+          todos: newTodos,
+          past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
+          future: []
+        };
+      }),
+
+      reorderTodos: (startIndex, endIndex) => set((state) => {
+        const newTodos = Array.from(state.todos);
+        const [removed] = newTodos.splice(startIndex, 1);
+        newTodos.splice(endIndex, 0, removed);
         return {
           todos: newTodos,
           past: [...state.past, state.todos].slice(-HISTORY_LIMIT),

@@ -46,7 +46,7 @@ const TaskEditor = () => {
         type="text"
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        className="w-full pl-12 pr-12 py-4 rounded-xl bg-[var(--card-bg)] border-2 border-[var(--border-color)] focus:border-[var(--color-primary)] focus:ring-4 focus:ring-[var(--color-primary-light)] outline-none transition-all shadow-sm text-lg placeholder:text-gray-400 dark:placeholder:text-gray-600"
+        className="w-full pl-12 pr-12 py-4 rounded-[2rem] bg-[var(--card-bg)] border border-black dark:border-white shadow-[0_0_15px_var(--color-primary)] focus:shadow-[0_0_25px_var(--color-primary)] focus:border-[var(--color-primary)] outline-none transition-all text-lg placeholder:text-gray-400 dark:placeholder:text-gray-600"
         placeholder="Add a task... (e.g., 'Buy milk tomorrow !! #home')"
       />
       

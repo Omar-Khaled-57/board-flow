@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Todo } from '../types';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
-import { Calendar, Tag as TagIcon, Flag, Trash2, CheckCircle2, Circle } from 'lucide-react';
+import { Calendar, Tag as TagIcon, Flag, Trash2, CheckCircle2, Circle, GripVertical } from 'lucide-react';
 import { format } from 'date-fns';
 import { marked } from 'marked';
 import clsx from 'clsx';
@@ -10,12 +10,17 @@ import { playCompleteSound } from '../utils/audio';
 
 interface TaskItemProps {
   task: Todo;
+  onDragStart?: (e: React.DragEvent, id: string) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent, id: string) => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 }
 
 const escapeHtml = (value: string) =>
   value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 
-const TaskItem = ({ task }: TaskItemProps) => {
+const TaskItem = ({ task, onDragStart, onDragOver, onDrop, onDragEnd, isDragging }: TaskItemProps) => {
   const toggleTodo = useTodoStore(state => state.toggleTodo);
   const deleteTodo = useTodoStore(state => state.deleteTodo);
   const settings = useTodoStore(state => state.settings);
@@ -35,13 +40,22 @@ const TaskItem = ({ task }: TaskItemProps) => {
   }, [task.title]);
 
   return (
-    <div className={clsx(
-      "group flex items-start gap-4 p-4 rounded-xl border transition-all duration-200",
+    <div 
+      draggable
+      onDragStart={(e) => onDragStart?.(e, task.id)}
+      onDragOver={onDragOver}
+      onDrop={(e) => onDrop?.(e, task.id)}
+      onDragEnd={onDragEnd}
+      className={clsx(
+      "group flex items-start gap-3 p-4 rounded-xl border transition-all duration-200",
       task.completed 
         ? "bg-gray-50/50 dark:bg-gray-800/20 border-transparent opacity-60" 
-        : "bg-(--card-bg) border-(--border-color) hover:shadow-md hover:border-primary-light dark:hover:border-primary/50"
+        : "bg-(--card-bg) border-(--border-color) hover:shadow-md hover:border-primary-light dark:hover:border-primary/50",
+      isDragging ? "opacity-50 scale-[0.98] shadow-lg border-primary" : ""
     )}>
-      
+        <div className="mt-1.5 shrink-0 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <GripVertical size={16} />
+        </div>
         <button onClick={handleToggle} aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'} className="mt-1 shrink-0 text-gray-400 hover:text-success transition-colors">
           {task.completed ? <CheckCircle2 size={24} className="text-success" /> : <Circle size={24} />}
         </button>

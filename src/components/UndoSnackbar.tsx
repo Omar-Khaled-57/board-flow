@@ -31,26 +31,26 @@ const UndoSnackbar = () => {
   if (!visible || (pastLength === 0 && futureLength === 0)) return null;
 
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-(--card-bg) border border-(--border-color) shadow-lg rounded-full px-4 py-2 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-5">
-      <span className="text-sm font-medium">Action performed</span>
-      <div className="flex items-center gap-2 border-l border-(--border-color) pl-4">
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 bg-(--card-bg) border border-(--border-color) shadow-lg rounded-full px-4 py-1.5 flex items-center gap-3 z-50 animate-in slide-in-from-top-5">
+      <div className="flex items-center gap-3">
         <button 
           onClick={() => { undo(); setVisible(false); }}
           disabled={pastLength === 0}
-          className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Undo2 size={16} /> Undo
+          <Undo2 size={14} /> Undo
         </button>
+        <div className="w-px h-4 bg-(--border-color)"></div>
         <button 
           onClick={() => { redo(); setVisible(false); }}
           disabled={futureLength === 0}
-          className="flex items-center gap-1 text-sm font-semibold text-primary hover:text-primary-hove disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary-hove disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Redo2 size={16} /> Redo
+          <Redo2 size={14} /> Redo
         </button>
       </div>
-      <button onClick={() => setVisible(false)} className="text-gray-400 hover:text-gray-600 ml-2" title="Close">
-        <X size={16} />
+      <button onClick={() => setVisible(false)} className="text-gray-400 hover:text-gray-600 ml-1" title="Close">
+        <X size={14} />
       </button>
     </div>
   );

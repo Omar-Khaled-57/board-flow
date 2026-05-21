@@ -1,17 +1,36 @@
 import { useTodoStore } from '../store/useTodoStore';
 import { Settings } from '../types';
+import { Sun, Moon, Monitor } from 'lucide-react';
 
 const Options = () => {
   const settings = useTodoStore(state => state.settings);
   const updateSettings = useTodoStore(state => state.updateSettings);
 
-  const colors = ['#5b6af0', '#e85d5d', '#3cb878', '#f59e0b', '#8b5cf6', '#ec4899'];
+  const colors = ['#5b6af0', '#e85d5d', '#3cb878', '#f59e0b', '#8b5cf6', '#ec4899', '#f5f5f5', '#9ca3af', '#39ff14', '#00e5ff'];
+
+  const getDisplayColor = (color: string) => {
+    if (color !== '#f5f5f5') return color;
+    let currentTheme = settings.theme;
+    if (currentTheme === 'system') {
+      currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return currentTheme === 'dark' ? '#ffffff' : '#111827';
+  };
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <header>
-        <h1 className="text-3xl font-bold">Options</h1>
-        <p className="text-(--text-secondary) mt-1">Customize your experience</p>
+      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 p-8 md:p-12 pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
+        {/* Decorative elements */}
+        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-[var(--text-on-primary)] opacity-30 pointer-events-none" />
+        <div className="absolute bottom-8 right-[-20px] w-32 h-32 rounded-full bg-[var(--text-on-primary)] opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-[var(--text-on-primary)] opacity-10 pointer-events-none" />
+
+        <div className="z-10 relative">
+          <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-[var(--text-on-primary)]">
+            Options
+          </h1>
+          <p className="mt-2 font-medium text-[var(--text-on-primary)] opacity-80">Customize your experience</p>
+        </div>
       </header>
       
       <div className="flex-1 bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 space-y-8 overflow-y-auto">
@@ -22,16 +41,29 @@ const Options = () => {
           <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <label className="font-medium text-(--text-secondary)">Theme Mode</label>
-              <select 
-                title="Select Theme Mode"
-                value={settings.theme}
-                onChange={e => updateSettings({ theme: e.target.value as Settings['theme'] })}
-                className="w-full sm:w-auto bg-(--bg-color) border border-(--border-color) rounded-md px-3 py-2 outline-none text-(--text-primary)"
-              >
-                <option value="system">System Default</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-              </select>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => updateSettings({ theme: 'light' })}
+                  className={`p-2 rounded-full border-2 transition-all ${settings.theme === 'light' ? 'border-primary text-primary bg-primary/10' : 'border-transparent text-(--text-secondary) hover:bg-(--bg-color)'}`}
+                  title="Light Mode"
+                >
+                  <Sun size={20} />
+                </button>
+                <button
+                  onClick={() => updateSettings({ theme: 'dark' })}
+                  className={`p-2 rounded-full border-2 transition-all ${settings.theme === 'dark' ? 'border-primary text-primary bg-primary/10' : 'border-transparent text-(--text-secondary) hover:bg-(--bg-color)'}`}
+                  title="Dark Mode"
+                >
+                  <Moon size={20} />
+                </button>
+                <button
+                  onClick={() => updateSettings({ theme: 'system' })}
+                  className={`p-2 rounded-full border-2 transition-all ${settings.theme === 'system' ? 'border-primary text-primary bg-primary/10' : 'border-transparent text-(--text-secondary) hover:bg-(--bg-color)'}`}
+                  title="System Default"
+                >
+                  <Monitor size={20} />
+                </button>
+              </div>
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -42,8 +74,8 @@ const Options = () => {
                     key={color}
                     onClick={() => updateSettings({ accentColor: color })}
                     aria-label={`Select accent color ${color}`}
-                    className={`w-10 h-10 rounded-full border-2 transition-transform hover:scale-110 ${settings.accentColor === color ? 'border-(--text-primary) scale-110' : 'border-transparent'}`}
-                    style={{ backgroundColor: color }}
+                    className={`w-10 h-10 rounded-full border-2 transition-transform hover:scale-110 ${settings.accentColor === color ? 'border-[var(--text-primary)] scale-110' : 'border-transparent'}`}
+                    style={{ backgroundColor: getDisplayColor(color) }}
                   />
                 ))}
               </div>
@@ -56,35 +88,35 @@ const Options = () => {
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary)">Add new tasks to top</label>
+              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Add new tasks to top</label>
               <input 
                 title="Add new tasks to top"
                 type="checkbox" 
                 checked={settings.addToTop}
                 onChange={e => updateSettings({ addToTop: e.target.checked })}
-                className="w-5 h-5 accent-primary cursor-pointer"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-[8px] after:top-[4px] after:w-[6px] after:h-[12px] after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
             
             <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary)">Move completed tasks to bottom</label>
+              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Move completed tasks to bottom</label>
               <input 
                 title="Move completed tasks to bottom"
                 type="checkbox" 
                 checked={settings.completedToBottom}
                 onChange={e => updateSettings({ completedToBottom: e.target.checked })}
-                className="w-5 h-5 accent-primary cursor-pointer"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-[8px] after:top-[4px] after:w-[6px] after:h-[12px] after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
             
             <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary)">Enable completion sound</label>
+              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Enable completion sound</label>
               <input 
                 title="Enable completion sound"
                 type="checkbox" 
                 checked={settings.soundEnabled}
                 onChange={e => updateSettings({ soundEnabled: e.target.checked })}
-                className="w-5 h-5 accent-primary cursor-pointer"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-[8px] after:top-[4px] after:w-[6px] after:h-[12px] after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
           </div>

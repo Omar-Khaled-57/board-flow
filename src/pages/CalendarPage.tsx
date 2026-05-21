@@ -97,20 +97,27 @@ const CalendarPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Calendar</h1>
-          <p className="text-(--text-secondary) mt-1">Schedule and due dates</p>
+      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 p-8 md:p-12 pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {/* Decorative elements */}
+        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-[var(--text-on-primary)] opacity-30 pointer-events-none" />
+        <div className="absolute bottom-8 right-[-20px] w-32 h-32 rounded-full bg-[var(--text-on-primary)] opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-[var(--text-on-primary)] opacity-10 pointer-events-none" />
+
+        <div className="z-10 relative">
+          <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-[var(--text-on-primary)]">
+            Calendar
+          </h1>
+          <p className="mt-2 font-medium text-[var(--text-on-primary)] opacity-80">Schedule and due dates</p>
         </div>
         
-        <div className="flex items-center gap-4 bg-(--card-bg) border border-(--border-color) p-2 rounded-xl shadow-sm">
-          <button onClick={prevMonth} className="p-1 hover:bg-primary-light dark:hover:bg-primary/20 rounded-lg transition-colors" title="Previous Month">
+        <div className="flex items-center justify-between w-full md:w-auto md:min-w-[300px] bg-[var(--text-on-primary)]/10 backdrop-blur-sm border border-[var(--text-on-primary)]/20 text-[var(--text-on-primary)] p-2 rounded-3xl shadow-sm z-10 relative">
+          <button onClick={prevMonth} className="p-2 hover:bg-[var(--text-on-primary)]/20 rounded-2xl transition-all" title="Previous Month">
             <ChevronLeft size={20} />
           </button>
-          <span className="font-semibold text-lg min-w-30 text-center">
+          <span className="font-bold text-lg text-center flex-1 drop-shadow-sm">
             {format(currentMonth, "MMMM yyyy")}
           </span>
-          <button onClick={nextMonth} className="p-1 hover:bg-primary-light dark:hover:bg-primary/20 rounded-lg transition-colors" title="Next Month">
+          <button onClick={nextMonth} className="p-2 hover:bg-[var(--text-on-primary)]/20 rounded-2xl transition-all" title="Next Month">
             <ChevronRight size={20} />
           </button>
         </div>

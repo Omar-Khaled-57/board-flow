@@ -9,10 +9,10 @@ const NLPGuide = () => {
       <button 
         type="button" 
         onClick={() => setIsOpen(true)}
-        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[var(--color-primary)] transition-colors p-1 rounded-md"
+        className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--color-primary)] opacity-80 hover:opacity-100 drop-shadow-[0_0_8px_var(--color-primary)] transition-all p-1 rounded-full"
         title="Smart Input Guide"
       >
-        <HelpCircle size={20} />
+        <HelpCircle size={22} />
       </button>
 
       {isOpen && (
