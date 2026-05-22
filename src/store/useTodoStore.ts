@@ -1,41 +1,43 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { Todo, Settings, Tag, TaskList } from '../types';
+import { getStorageAdapter } from './storage';
 
 interface TodoState {
   todos: Todo[];
+  /** Tag library (all known tags, not per-task tags) */
   tags: Tag[];
   lists: TaskList[];
   settings: Settings;
-  
-  // Undo/Redo stacks
+
+  /** Undo/Redo stacks — each entry is a full snapshot of `todos` */
   past: Todo[][];
   future: Todo[][];
 
-  // Actions
   addTodo: (todo: Omit<Todo, 'id' | 'createdAt'>) => void;
   updateTodo: (id: string, updates: Partial<Todo>) => void;
   deleteTodo: (id: string) => void;
   deleteCompletedTodos: () => void;
   toggleTodo: (id: string) => void;
-  reorderTodos: (startIndex: number, endIndex: number) => void;
+  /** Replace the full todos array with a custom ordering (used by drag-and-drop) */
   setTodoOrder: (orderedIds: string[]) => void;
-  
+
   addTag: (tag: Omit<Tag, 'id'>) => void;
   addList: (list: Omit<TaskList, 'id' | 'createdAt'>) => void;
   deleteList: (id: string) => void;
   renameList: (id: string, newName: string) => void;
   updateSettings: (settings: Partial<Settings>) => void;
-  
+
   undo: () => void;
   redo: () => void;
 }
 
 const HISTORY_LIMIT = 50;
+const ID_LENGTH = 7;
 
 const defaultSettings: Settings = {
   theme: 'system',
-  accentColor: '#5b6af0', // default primary
+  accentColor: '#5b6af0',
   soundEnabled: true,
   notificationsEnabled: true,
   addToTop: false,
@@ -43,10 +45,7 @@ const defaultSettings: Settings = {
   landscapeStackedTasks: true,
 };
 
-const generateId = () => Math.random().toString(36).substring(2, 9);
-
-import { createJSONStorage } from 'zustand/middleware';
-import { getStorageAdapter } from './storage';
+const generateId = () => Math.random().toString(36).substring(2, 2 + ID_LENGTH);
 
 export const useTodoStore = create<TodoState>()(
   persist(
@@ -120,7 +119,9 @@ export const useTodoStore = create<TodoState>()(
 
       setTodoOrder: (orderedIds: string[]) => set((state) => {
     const idSet = new Set(orderedIds);
-    const reordered = orderedIds.map((id: string) => state.todos.find(t => t.id === id)!).filter(Boolean);
+    const reordered = orderedIds
+      .map((id: string) => state.todos.find(t => t.id === id))
+      .filter((t): t is Todo => t !== undefined);
     const remaining = state.todos.filter(t => !idSet.has(t.id));
     return {
       todos: [...reordered, ...remaining],
@@ -128,17 +129,6 @@ export const useTodoStore = create<TodoState>()(
       future: []
     };
   }),
-
-  reorderTodos: (startIndex, endIndex) => set((state) => {
-        const newTodos = Array.from(state.todos);
-        const [removed] = newTodos.splice(startIndex, 1);
-        newTodos.splice(endIndex, 0, removed);
-        return {
-          todos: newTodos,
-          past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-          future: []
-        };
-      }),
 
       addTag: (tagData) => set((state) => ({
         tags: [...state.tags, { ...tagData, id: generateId() }]

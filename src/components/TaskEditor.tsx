@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { PlusCircle, Calendar, Tag as TagIcon, Flag } from 'lucide-react';
 import clsx from 'clsx';
 import { useTodoStore } from '../store/useTodoStore';
@@ -21,8 +21,7 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
     return () => clearTimeout(timer);
   }, [input]);
 
-  // We parse continuously based on debounced input
-  const parsed = parseTaskInput(debouncedInput);
+  const parsed = useMemo(() => parseTaskInput(debouncedInput), [debouncedInput]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +53,7 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
         onChange={(e) => setInput(e.target.value)}
         className="w-full pl-12 pr-12 py-4 rounded-[2rem] bg-(--card-bg) border border-black dark:border-white shadow-[0_0_15px_var(--color-primary)] focus:shadow-[0_0_25px_var(--color-primary)] focus:border-primary outline-none transition-all text-lg placeholder:text-gray-400 dark:placeholder:text-gray-600"
         placeholder="Add a task... (e.g., 'Buy milk tomorrow !! #home')"
+        aria-label="New task input"
       />
       
       <NLPGuide />

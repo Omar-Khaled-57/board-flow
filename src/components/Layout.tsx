@@ -5,18 +5,20 @@ import { useTheme } from '../hooks/useTheme';
 import UndoSnackbar from './UndoSnackbar';
 import useNotificationScheduler from '../hooks/useNotificationScheduler';
 
+const navItems = [
+  { to: '/', icon: Home, label: 'Tasks' },
+  { to: '/calendar', icon: Calendar, label: 'Calendar' },
+  { to: '/stats', icon: BarChart2, label: 'Stats' },
+  { to: '/options', icon: Settings, label: 'Options' },
+];
+
+/* ─── Layout ─── */
 const Layout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const location = useLocation();
   useTheme();
   useNotificationScheduler();
 
-  const navItems = [
-    { to: '/', icon: Home, label: 'Tasks' },
-    { to: '/calendar', icon: Calendar, label: 'Calendar' },
-    { to: '/stats', icon: BarChart2, label: 'Stats' },
-    { to: '/options', icon: Settings, label: 'Options' },
-  ];
   const activeNavIndex = Math.max(
     0,
     navItems.findIndex(item => item.to === '/' ? location.pathname === '/' : location.pathname.startsWith(item.to))
@@ -93,7 +95,7 @@ const Layout = () => {
       </nav>
 
       <div className="flex-1 flex flex-col">
-        <main className="flex-1 overflow-auto p-4 md:p-8 pb-32 md:pb-8">
+        <main className="flex-1 overflow-auto p-4 md:p-8 pb-32 md:pb-8 animate-fade-in">
           <div className="max-w-7xl mx-auto h-full relative">
             <Outlet />
             <UndoSnackbar />

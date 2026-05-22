@@ -172,57 +172,61 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
     };
   }, [draggedId, todos, setTodoOrder]);
 
-  if (todos.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center text-(--text-primary) opacity-80 dark:opacity-100">
-        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-          <Sparkles size={40} className="text-primary" />
-        </div>
-        <h3 className="text-2xl font-bold text-(--text-primary) mb-3">No tasks right now</h3>
-        <div className="mx-auto flex max-w-sm flex-col items-center gap-2.5 text-center text-sm leading-6 text-(--text-primary) dark:opacity-85">
-          <p>Type naturally to auto-fill task details:</p>
-          <p className="max-w-xs">
-            <strong className="text-primary">Dates:</strong>{' '}
-            write "tomorrow", "20 May 2027", "20/may/2027", or "20/05/27".
-          </p>
-          <p className="max-w-xs">
-            <strong className="text-primary">Tags:</strong>{' '}
-            use # to add tags, like "#home".
-          </p>
-          <p className="max-w-xs">
-            <strong className="text-primary">Priority:</strong>{' '}
-            use "!!", "!high", "!med", or "!low".
-          </p>
-          <div className="mt-1 w-full rounded-xl border border-(--border-color) bg-(--bg-color) px-4 py-3 text-center text-sm font-medium text-(--text-primary) shadow-sm">
-            Example: "Buy milk 20/05/27 !! #home"
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (sortedTodos.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center p-12 text-center text-(--text-primary) opacity-80 dark:opacity-100">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-          <Search size={32} className="text-primary opacity-60" />
-        </div>
-        <p className="text-lg font-medium">No tasks match your filters</p>
-        <p>Try changing your search terms or filter settings.</p>
-      </div>
-    );
-  }
+  const showEmptyState = todos.length === 0;
+  const showNoMatch = todos.length > 0 && sortedTodos.length === 0;
+  const showTaskList = sortedTodos.length > 0;
 
   return (
-    <div ref={listRef} className="relative flex flex-col gap-3">
-      {sortedTodos.map(todo => (
-        <TaskItem
-          key={todo.id}
-          task={todo}
-          isDragging={draggedId === todo.id}
-          onPointerDown={handlePointerDown}
-        />
-      ))}
+    <div ref={listRef} className="relative min-h-[32rem]">
+      {showEmptyState && (
+        <div className="flex flex-col items-center justify-center py-20 text-center text-(--text-primary) opacity-80 dark:opacity-100">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+            <Sparkles size={40} className="text-primary" />
+          </div>
+          <h3 className="text-2xl font-bold text-(--text-primary) mb-3">No tasks right now</h3>
+          <div className="mx-auto flex max-w-sm flex-col items-center gap-2.5 text-center text-sm leading-6 text-(--text-primary) dark:opacity-85">
+            <p>Type naturally to auto-fill task details:</p>
+            <p className="max-w-xs">
+              <strong className="text-primary">Dates:</strong>{' '}
+              write "tomorrow", "20 May 2027", "20/may/2027", or "20/05/27".
+            </p>
+            <p className="max-w-xs">
+              <strong className="text-primary">Tags:</strong>{' '}
+              use # to add tags, like "#home".
+            </p>
+            <p className="max-w-xs">
+              <strong className="text-primary">Priority:</strong>{' '}
+              use "!!", "!high", "!med", or "!low".
+            </p>
+            <div className="mt-1 w-full rounded-xl border border-(--border-color) bg-(--bg-color) px-4 py-3 text-center text-sm font-medium text-(--text-primary) shadow-sm">
+              Example: "Buy milk 20/05/27 !! #home"
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showNoMatch && (
+        <div className="flex flex-col items-center justify-center p-12 text-center text-(--text-primary) opacity-80 dark:opacity-100">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+            <Search size={32} className="text-primary opacity-60" />
+          </div>
+          <p className="text-lg font-medium">No tasks match your filters</p>
+          <p>Try changing your search terms or filter settings.</p>
+        </div>
+      )}
+
+      {showTaskList && (
+        <div className="relative flex flex-col gap-3">
+          {sortedTodos.map(todo => (
+            <TaskItem
+              key={todo.id}
+              task={todo}
+              isDragging={draggedId === todo.id}
+              onPointerDown={handlePointerDown}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Absolute-positioned drop indicator — no layout shift */}
       {dropY !== null && (
@@ -243,6 +247,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
         <div
           className="fixed z-50 pointer-events-none transition-opacity duration-75"
           style={{ left: ghostPos.x, top: ghostPos.y }}
+          aria-hidden="true"
         >
           <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-(--card-bg)/90 backdrop-blur-sm shadow-xl opacity-85 max-w-65">
             <div className="mt-0.5 shrink-0 text-primary/50">

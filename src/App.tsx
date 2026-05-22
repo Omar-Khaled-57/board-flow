@@ -9,12 +9,20 @@ import SplashScreen from './components/SplashScreen';
 
 function App() {
   const [showSplash, setShowSplash] = useState(() => {
-    return !localStorage.getItem('hasSeenSplash');
+    try {
+      return !localStorage.getItem('hasSeenSplash');
+    } catch {
+      return false;
+    }
   });
 
   if (showSplash) {
     return <SplashScreen onComplete={() => {
-      localStorage.setItem('hasSeenSplash', 'true');
+      try {
+        localStorage.setItem('hasSeenSplash', 'true');
+      } catch {
+        // localStorage unavailable — continue silently
+      }
       setShowSplash(false);
     }} />;
   }

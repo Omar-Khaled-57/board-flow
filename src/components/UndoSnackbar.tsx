@@ -4,11 +4,11 @@ import { Undo2, Redo2, X } from 'lucide-react';
 
 const UndoSnackbar = () => {
   const [visible, setVisible] = useState(false);
-  const undo = useTodoStore(state => state.undo);
-  const redo = useTodoStore(state => state.redo);
   const pastLength = useTodoStore(state => state.past.length);
   const futureLength = useTodoStore(state => state.future.length);
-  
+  const undo = useTodoStore(state => state.undo);
+  const redo = useTodoStore(state => state.redo);
+
   const initialMount = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -25,12 +25,15 @@ const UndoSnackbar = () => {
         setVisible(false);
       }, 6000);
     }
+
+    return () => {
+      if (timer.current) clearTimeout(timer.current);
+    };
   }, [pastLength, futureLength]);
 
   if (!visible || (pastLength === 0 && futureLength === 0)) return null;
 
   return (
-    // Positioned above the bottom navbar on mobile, floating at bottom-right on desktop.
     <div className="
       fixed left-1/2 -translate-x-1/2 z-50
       bottom-[7rem] portrait:bottom-[8.5rem] md:bottom-8
@@ -38,18 +41,20 @@ const UndoSnackbar = () => {
     ">
       <div className="bg-(--card-bg) border border-(--border-color) shadow-lg rounded-full px-4 py-2 flex items-center gap-3">
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => { undo(); setVisible(false); }}
             disabled={pastLength === 0}
             className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            aria-label="Undo last action"
           >
             <Undo2 size={14} /> Undo
           </button>
           <div className="w-px h-4 bg-(--border-color)" />
-          <button 
+          <button
             onClick={() => { redo(); setVisible(false); }}
             disabled={futureLength === 0}
             className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            aria-label="Redo last action"
           >
             <Redo2 size={14} /> Redo
           </button>
@@ -57,7 +62,7 @@ const UndoSnackbar = () => {
         <button
           onClick={() => setVisible(false)}
           className="text-(--text-secondary) hover:text-(--text-primary) ml-1 transition-colors"
-          title="Close"
+          aria-label="Close undo bar"
         >
           <X size={14} />
         </button>

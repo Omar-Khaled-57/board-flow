@@ -136,7 +136,8 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
     <div
       data-taskid={task.id}
       className={clsx(
-        "group flex items-start gap-3 p-4 rounded-xl border transition-all duration-200 w-full",
+        "group flex items-start p-4 rounded-xl border transition-all duration-200 w-full",
+        isEditing ? "gap-0" : "gap-3",
         !isEditing && "select-none",
         task.completed
           ? "bg-gray-50/50 dark:bg-gray-800/20 border-transparent"
@@ -150,13 +151,28 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
       {/* Drag handle — initiates pointer drag */}
       <div
         onPointerDown={handleGripPointerDown}
-        className="mt-1.5 shrink-0 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing md:opacity-0 md:group-hover:opacity-100 transition-opacity touch-none"
+        className={clsx(
+          "mt-1.5 text-gray-300 hover:text-gray-500 cursor-grab active:cursor-grabbing touch-none overflow-hidden shrink-0 flex items-center justify-center transition-all duration-200 ease-out",
+          isEditing
+            ? "w-0 opacity-0 scale-75 pointer-events-none"
+            : "w-4 md:opacity-0 md:group-hover:opacity-100"
+        )}
         title="Drag to reorder"
+        aria-label="Drag to reorder"
       >
         <GripVertical size={16} />
       </div>
 
-      <button onClick={handleToggle} aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'} className="mt-1 shrink-0 text-gray-400 hover:text-success transition-colors">
+      <button
+        onClick={handleToggle}
+        aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'}
+        className={clsx(
+          "mt-1 text-gray-400 hover:text-success overflow-hidden shrink-0 flex items-center justify-center transition-all duration-200 ease-out",
+          isEditing
+            ? "w-0 opacity-0 scale-75 pointer-events-none"
+            : "w-6"
+        )}
+      >
         {task.completed ? <CheckCircle2 size={24} className="text-success" /> : <Circle size={24} />}
       </button>
 

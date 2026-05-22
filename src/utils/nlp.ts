@@ -9,30 +9,18 @@ export interface ParsedInput {
 }
 
 const MONTHS: Record<string, number> = {
-  jan: 0,
-  january: 0,
-  feb: 1,
-  february: 1,
-  mar: 2,
-  march: 2,
-  apr: 3,
-  april: 3,
+  jan: 0, january: 0,
+  feb: 1, february: 1,
+  mar: 2, march: 2,
+  apr: 3, april: 3,
   may: 4,
-  jun: 5,
-  june: 5,
-  jul: 6,
-  july: 6,
-  aug: 7,
-  august: 7,
-  sep: 8,
-  sept: 8,
-  september: 8,
-  oct: 9,
-  october: 9,
-  nov: 10,
-  november: 10,
-  dec: 11,
-  december: 11,
+  jun: 5, june: 5,
+  jul: 6, july: 6,
+  aug: 7, august: 7,
+  sep: 8, sept: 8, september: 8,
+  oct: 9, october: 9,
+  nov: 10, november: 10,
+  dec: 11, december: 11,
 };
 
 const normalizeYear = (year: number | undefined) => {
@@ -93,10 +81,9 @@ const parseFlexibleDate = (text: string): { date: Date; text: string } | null =>
 };
 
 export const parseTaskInput = (text: string): ParsedInput => {
-  let priority: Priority = 'medium'; // default to medium priority
+  let priority: Priority = 'medium';
   let cleanedText = text;
-  
-  // Extract priority markers
+
   if (cleanedText.match(/!high/i) || cleanedText.match(/!!/)) {
     priority = 'high';
     cleanedText = cleanedText.replace(/!high/gi, '').replace(/!!/g, '');
@@ -108,7 +95,6 @@ export const parseTaskInput = (text: string): ParsedInput => {
     cleanedText = cleanedText.replace(/!med(ium)?/gi, '');
   }
 
-  // Extract Tags (e.g. #home, #work)
   const tags: string[] = [];
   const tagRegex = /#([\w]+)/g;
   let match;
@@ -124,15 +110,18 @@ export const parseTaskInput = (text: string): ParsedInput => {
     dueDate = flexibleDate.date.getTime();
     cleanedText = cleanedText.replace(flexibleDate.text, '');
   } else {
-    // Extract Dates using Chrono
-    const parsedResults = chrono.parse(cleanedText);
-
-    if (parsedResults.length > 0) {
-    // take the first date found
-      const result = parsedResults[0];
-      dueDate = result.start.date().getTime();
-      // remove the date text from the title
-      cleanedText = cleanedText.replace(result.text, '');
+    try {
+      const parsedResults = chrono.parse(cleanedText);
+      if (parsedResults.length > 0) {
+        const result = parsedResults[0];
+        const date = result.start.date();
+        if (date && !isNaN(date.getTime())) {
+          dueDate = date.getTime();
+          cleanedText = cleanedText.replace(result.text, '');
+        }
+      }
+    } catch {
+      // Chrono parsing failed — silently skip date extraction
     }
   }
 

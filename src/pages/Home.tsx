@@ -154,6 +154,7 @@ const Home = () => {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="min-h-11 pl-9 pr-4 py-2.5 rounded-full bg-[rgba(var(--text-on-primary-rgb),0.1)] border border-[rgba(var(--text-on-primary-rgb),0.2)] text-(--text-on-primary) placeholder-[rgba(var(--text-on-primary-rgb),0.6)] text-sm focus:border-(--text-on-primary) focus:ring-2 focus:ring-[rgba(var(--text-on-primary-rgb),0.3)] outline-none w-full transition-all shadow-sm backdrop-blur-sm"
+                aria-label="Search tasks"
               />
             </div>
             
@@ -346,6 +347,7 @@ const Home = () => {
                 onClick={handleAddList}
                 className="grid min-h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-(--text-on-primary) transition-all shadow-none"
                 title="Add new list"
+                aria-label="Add new list"
               >
                 <Plus size={16} />
               </button>

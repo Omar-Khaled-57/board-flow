@@ -9,8 +9,9 @@ const StatsPage = () => {
   const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   
   const todayStats = stats.dailyGoals[today] || { completedCount: 0, goal: 5 };
-  
-  const progressPercent = Math.min(100, Math.round((todayStats.completedCount / todayStats.goal) * 100)) || 0;
+
+  const safeGoal = todayStats.goal > 0 ? todayStats.goal : 1;
+  const progressPercent = Math.min(100, Math.round((todayStats.completedCount / safeGoal) * 100)) || 0;
 
   const hasNoData = Object.keys(stats.dailyGoals).length === 0 || Object.values(stats.dailyGoals).every(g => g.completedCount === 0);
 
@@ -18,7 +19,8 @@ const StatsPage = () => {
     const date = subDays(new Date(), 6 - i);
     const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
     const dayStats = stats.dailyGoals[dateString] || { completedCount: 0, goal: 5 };
-    const percent = Math.min(100, Math.round((dayStats.completedCount / dayStats.goal) * 100)) || 0;
+    const safeGoal = dayStats.goal > 0 ? dayStats.goal : 1;
+    const percent = Math.min(100, Math.round((dayStats.completedCount / safeGoal) * 100)) || 0;
     return {
       label: format(date, 'EEE'),
       percent,
