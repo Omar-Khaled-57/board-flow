@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+package-lock.json
 
 # Editor directories and files
 .vscode/*
@@ -25,13 +26,14 @@ dist-ssr
 
 # Extra
 dev/
+my-release-key.jks
 
 # Keep Tauri/Cargo build artifacts ignored
 target/
 
 # Android build outputs
-app-release.apk
-app-release.apk.idsig
+/*.apk
+/*.apk.idsig
 
 # Environment variables
 .env
