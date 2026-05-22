@@ -2,8 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Todo, Priority } from '../types';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
-import { Calendar, Tag as TagIcon, Flag, Trash2, CheckCircle2, Circle, GripVertical, Edit2, X } from 'lucide-react';
-import { formatTaskDate } from '../utils/dateFormat';
+import { Calendar, Clock, Tag as TagIcon, Flag, Trash2, CheckCircle2, Circle, GripVertical, Edit2, X } from 'lucide-react';
+import { formatTaskDate, formatTaskTime } from '../utils/dateFormat';
 import { marked } from 'marked';
 import clsx from 'clsx';
 import { playCompleteSound } from '../utils/audio';
@@ -200,7 +200,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
             "flex flex-wrap items-center gap-3 mt-2 text-xs transition-all duration-500",
             (task.completed || isCompleting) && "opacity-40"
           )}>
-            {task.dueDate && (
+             {task.dueDate && (
               <div className={clsx(
                 "flex items-center gap-1 px-2 py-1 rounded-md font-semibold border border-transparent",
                 task.dueDate < Date.now() && !task.completed
@@ -209,6 +209,12 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
               )}>
                 <Calendar size={12} />
                 <span>{formatTaskDate(task.dueDate)}</span>
+              </div>
+            )}
+            {formatTaskTime(task.dueDate) && (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-md font-semibold border border-transparent badge-info dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22">
+                <Clock size={12} />
+                <span>{formatTaskTime(task.dueDate)}</span>
               </div>
             )}
             {task.priority !== 'medium' && (
@@ -266,6 +272,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
               {parsedDate && (
                 <span className="text-xs text-primary font-semibold whitespace-nowrap">
                   {formatTaskDate(parsedDate)}
+                  {formatTaskTime(parsedDate) && <span className="ml-1.5">{formatTaskTime(parsedDate)}</span>}
                 </span>
               )}
               {editorDueDate && (

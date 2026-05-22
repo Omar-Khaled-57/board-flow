@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useTodoStore } from '../store/useTodoStore';
+import { useStatsStore } from '../store/useStatsStore';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { Todo } from '../types';
 
@@ -67,6 +68,10 @@ const Options = () => {
   const todos = useTodoStore(state => state.todos);
   const lists = useTodoStore(state => state.lists);
   const addTodo = useTodoStore(state => state.addTodo);
+  const dailyGoals = useStatsStore(state => state.dailyGoals);
+  const setDailyGoal = useStatsStore(state => state.setDailyGoal);
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const todayGoal = dailyGoals[todayKey]?.goal ?? 5;
 
   const [selectedExportList, setSelectedExportList] = useState('all');
   const [selectedImportList, setSelectedImportList] = useState('all');
@@ -373,6 +378,24 @@ const Options = () => {
                 className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-xl font-semibold mb-4 border-b border-(--border-color) pb-2">Daily Goals</h2>
+          <div className="flex items-center justify-between">
+            <label className="font-medium text-(--text-secondary)">Daily task completion target</label>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={todayGoal}
+              onChange={e => {
+                const val = parseInt(e.target.value, 10);
+                if (!isNaN(val) && val >= 1) setDailyGoal(val);
+              }}
+              className="w-20 rounded-xl border border-(--border-color) bg-(--bg-color) px-3 py-2 text-center text-sm font-semibold text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
           </div>
         </section>
 

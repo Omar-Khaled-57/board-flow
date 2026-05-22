@@ -3,16 +3,19 @@ import { useTodoStore } from '../store/useTodoStore';
 import { Undo2, Redo2, X } from 'lucide-react';
 
 const KEYBOARD_THRESHOLD = 100;
+/** Extra cushion above the keyboard so the snackbar is clearly visible */
+const KEYBOARD_CUSHION = 40; // px
 
 /** Bottom offset (rem) contributed by the mobile bottom nav, by orientation */
 const getNavGap = (): number => {
-  if (window.matchMedia('(min-width: 768px)').matches) return 2;   // desktop — small gap
-  if (window.matchMedia('(orientation: portrait)').matches) return 7.5; // mobile portrait
-  return 6.25; // mobile landscape
+  if (window.matchMedia('(min-width: 768px)').matches) return 2;
+  if (window.matchMedia('(orientation: portrait)').matches) return 7.5;
+  return 6.25;
 };
 
 const UndoSnackbar = () => {
   const [visible, setVisible] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [navGap, setNavGap] = useState(getNavGap);
 
@@ -24,7 +27,6 @@ const UndoSnackbar = () => {
   const initialMount = useRef(true);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Recalculate nav gap when viewport/orientation changes
   const recalc = useCallback(() => setNavGap(getNavGap()), []);
 
   useEffect(() => {
@@ -39,14 +41,15 @@ const UndoSnackbar = () => {
     };
   }, [recalc]);
 
-  // Track on-screen keyboard via Visual Viewport API
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
 
     const update = () => {
       const diff = window.innerHeight - vv.height;
-      setKeyboardOffset(diff > KEYBOARD_THRESHOLD ? diff : 0);
+      const kbOpen = diff > KEYBOARD_THRESHOLD;
+      setIsKeyboardOpen(kbOpen);
+      setKeyboardOffset(kbOpen ? diff + KEYBOARD_CUSHION : 0);
     };
 
     vv.addEventListener('resize', update);
@@ -81,7 +84,9 @@ const UndoSnackbar = () => {
     <div
       className="fixed left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-300"
       style={{
-        bottom: `calc(${keyboardOffset}px + ${navGap}rem + env(safe-area-inset-bottom, 0px))`,
+        bottom: isKeyboardOpen
+          ? `${keyboardOffset}px`
+          : `calc(${navGap}rem + env(safe-area-inset-bottom, 0px))`,
       }}
     >
       <div className="bg-(--card-bg) border border-(--border-color) shadow-lg rounded-full px-4 py-2 flex items-center gap-3">

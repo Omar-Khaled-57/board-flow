@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { PlusCircle, Calendar, Tag as TagIcon, Flag } from 'lucide-react';
+import { PlusCircle, Calendar, Clock, Tag as TagIcon, Flag } from 'lucide-react';
 import clsx from 'clsx';
 import { useTodoStore } from '../store/useTodoStore';
 import { parseTaskInput } from '../utils/nlp';
-import { formatTaskDate } from '../utils/dateFormat';
+import { formatTaskDate, formatTaskTime } from '../utils/dateFormat';
 import NLPGuide from './NLPGuide';
 
 interface TaskEditorProps {
@@ -70,6 +70,12 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
               <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md">
                 <Calendar size={14} />
                 <span>{formatTaskDate(parsed.dueDate)}</span>
+              </div>
+            )}
+            {parsed.dueDate && formatTaskTime(parsed.dueDate) && (
+              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md">
+                <Clock size={14} />
+                <span>{formatTaskTime(parsed.dueDate)}</span>
               </div>
             )}
             

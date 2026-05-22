@@ -61,9 +61,28 @@ A running log of every change, fix, and decision during development.
 - **Direction-aware page transitions** — the AnimatedOutlet approach caused snapping and duplication issues on route changes, replaced with the simple one-time fade-in
 </details>
 
----
+## Session 3 — Time Tags, Calendar Panel & Daily Goals
 
-### File Map (Session 2)
+**Focus**: Add time display to tasks, build calendar day-panel, add daily goals setting.
+
+### 🚀 New Features
+- **Time tag on tasks** — `formatTaskTime` in dateFormat.ts returns `h:mm a` only when hours/minutes are non-zero; `Clock` icon badge rendered alongside the date tag in TaskItem (view + edit) and TaskEditor NLP preview
+- **Calendar selected-day panel** — clicking a date cell sets `selectedDate` state, reveals a detail panel below the calendar grid with all tasks for that day, showing title, time, priority, and tags
+- **Daily Goals setting** — numeric `<input type="number">` in Options page, wired to `useStatsStore.setDailyGoal`, validates integer ≥ 1, defaults to 5
+
+### 🐛 Bug Fixes
+- **`dailyGoal` vs `dailyGoals` type mismatch** — Options page initially referenced `state.dailyGoal` (non-existent), fixed to access `state.dailyGoals` record and derive today's goal
+
+### 🧹 Code Cleanup
+- **`dateFormat.ts`** — added `formatTaskTime` export, clean condition for hiding time when hours/minutes are zero
+- **`TaskItem.tsx`** — imported `Clock` icon, added time badge in view mode and inline time in edit date preview
+- **`TaskEditor.tsx`** — imported `Clock` icon, added time badge to parsed preview
+- **`CalendarPage.tsx`** — added `selectedDate`/`setSelectedDate` state, click handlers on cells, animated detail panel with todo list grouped by day
+
+<details>
+<summary><strong>Session 2 — Code Quality & Stability</strong></summary>
+
+**Focus**: Clean up the codebase, fix bugs, improve accessibility and performance, make the app more robust.
 
 | File | What changed |
 |------|-------------|

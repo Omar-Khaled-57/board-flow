@@ -1,14 +1,14 @@
 import { useState, useMemo } from 'react';
 import { useTodoStore } from '../store/useTodoStore';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle2, Circle } from 'lucide-react';
 import clsx from 'clsx';
 
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const todos = useTodoStore(state => state.todos);
 
-  // Build a Map keyed by date string for O(1) lookup per cell instead of O(n) filter
   const todosByDate = useMemo(() => {
     const map = new Map<string, typeof todos>();
     for (const t of todos) {
@@ -23,6 +23,11 @@ const CalendarPage = () => {
 
   const hasScheduledTasks = useMemo(() => todosByDate.size > 0, [todosByDate]);
 
+  const selectedTodos = useMemo(() => {
+    if (!selectedDate) return [];
+    return todosByDate.get(selectedDate) || [];
+  }, [selectedDate, todosByDate]);
+
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
 
@@ -30,6 +35,12 @@ const CalendarPage = () => {
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart);
   const endDate = endOfWeek(monthEnd);
+
+  const formatTime = (ts: number) => {
+    const d = new Date(ts);
+    if (d.getHours() === 0 && d.getMinutes() === 0) return null;
+    return format(d, 'h:mm a');
+  };
 
   const renderDays = () => {
     const longFormat = "EEEE";
@@ -59,14 +70,19 @@ const CalendarPage = () => {
         formattedDate = format(day, "d");
         const dayKey = format(day, 'yyyy-MM-dd');
         const dayTodos = todosByDate.get(dayKey) || [];
+        const isSelected = selectedDate === dayKey;
 
         days.push(
           <div
             className={clsx(
-              "min-h-25 p-2 border-r border-b border-(--border-color) transition-colors",
-              !isSameMonth(day, monthStart) ? "bg-gray-50/50 dark:bg-gray-800/10 text-gray-400" : "bg-(--card-bg) text-(--text-primary) hover:bg-primary-light dark:hover:bg-primary/10 cursor-pointer"
+              "min-h-25 p-2 border-r border-b border-(--border-color) transition-all",
+              !isSameMonth(day, monthStart) ? "bg-gray-50/50 dark:bg-gray-800/10 text-gray-400" : "bg-(--card-bg) text-(--text-primary) cursor-pointer",
+              isSelected
+                ? "ring-2 ring-primary ring-inset bg-primary-light dark:bg-primary/10"
+                : "hover:bg-primary-light dark:hover:bg-primary/10"
             )}
             key={day.getTime()}
+            onClick={() => setSelectedDate(isSelected ? null : dayKey)}
           >
             <div className="flex justify-end">
               <span className={clsx(
@@ -136,22 +152,87 @@ const CalendarPage = () => {
         </div>
       </header>
 
-      <div className="flex-1 bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 overflow-y-auto">
-        {!hasScheduledTasks ? (
-          <div className="h-full flex flex-col items-center justify-center text-center text-(--text-secondary) py-12">
-             <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-               <CalendarIcon size={40} className="text-primary" />
-             </div>
-             <h2 className="text-2xl font-bold text-(--text-primary) mb-2">No Scheduled Tasks</h2>
-             <p className="max-w-md text-sm">
-               Tasks with dates or times will appear here. Try adding a due date to a task to see it on the calendar!
-             </p>
+      <div className="flex-1 flex flex-col gap-4">
+        <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 overflow-y-auto">
+          {!hasScheduledTasks ? (
+            <div className="h-full flex flex-col items-center justify-center text-center text-(--text-secondary) py-12">
+               <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                 <CalendarIcon size={40} className="text-primary" />
+               </div>
+               <h2 className="text-2xl font-bold text-(--text-primary) mb-2">No Scheduled Tasks</h2>
+               <p className="max-w-md text-sm">
+                 Tasks with dates or times will appear here. Try adding a due date to a task to see it on the calendar!
+               </p>
+            </div>
+          ) : (
+            <>
+              {renderDays()}
+              {renderCells()}
+            </>
+          )}
+        </div>
+
+        {selectedDate && (
+          <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 animate-fade-slide-down">
+            <h3 className="text-lg font-bold text-(--text-primary) mb-4">
+              Tasks for {format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')}
+              <span className="ml-2 text-sm font-normal text-(--text-secondary)">({selectedTodos.length} task{selectedTodos.length !== 1 ? 's' : ''})</span>
+            </h3>
+
+            {selectedTodos.length === 0 ? (
+              <p className="text-sm text-(--text-secondary)">No tasks for this day.</p>
+            ) : (
+              <div className="space-y-2">
+                {selectedTodos.map(todo => (
+                  <div
+                    key={todo.id}
+                    className={clsx(
+                      "flex items-start gap-3 p-3 rounded-lg border transition-colors",
+                      todo.completed
+                        ? "bg-gray-50/50 dark:bg-gray-800/20 border-transparent opacity-60"
+                        : "bg-(--bg-color) border-(--border-color) hover:border-primary/30"
+                    )}
+                  >
+                    <div className="mt-0.5 shrink-0">
+                      {todo.completed
+                        ? <CheckCircle2 size={18} className="text-success" />
+                        : <Circle size={18} className="text-gray-400" />
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={clsx(
+                        "text-sm font-medium",
+                        todo.completed ? "text-gray-500 line-through" : "text-(--text-primary)"
+                      )}>
+                        {todo.title}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs">
+                        {formatTime(todo.dueDate!) && (
+                          <span className="flex items-center gap-1 text-primary">
+                            <Clock size={12} />
+                            {formatTime(todo.dueDate!)}
+                          </span>
+                        )}
+                        {todo.priority !== 'medium' && (
+                          <span className={clsx(
+                            "px-1.5 py-0.5 rounded font-semibold capitalize",
+                            todo.priority === 'high' ? "text-red-500 bg-red-500/10" : "text-green-500 bg-green-500/10"
+                          )}>
+                            {todo.priority}
+                          </span>
+                        )}
+                        {todo.tags.map(t => (
+                          <span key={t} className="text-primary tag-pill px-1.5 py-0.5 rounded">
+                            #{t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-        ) : (
-          <>
-            {renderDays()}
-            {renderCells()}
-          </>
         )}
       </div>
     </div>
