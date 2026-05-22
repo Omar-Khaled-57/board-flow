@@ -174,10 +174,10 @@ const CalendarPage = () => {
 
         {selectedDate && (
           <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 animate-fade-slide-down">
-            <h3 className="text-lg font-bold text-(--text-primary) mb-4">
+            <h3 className="text-lg font-bold text-(--text-primary)">
               Tasks for {format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')}
-              <span className="ml-2 text-sm font-normal text-(--text-secondary)">({selectedTodos.length} task{selectedTodos.length !== 1 ? 's' : ''})</span>
             </h3>
+            <p className="text-sm text-(--text-secondary) mb-4">({selectedTodos.length} task{selectedTodos.length !== 1 ? 's' : ''})</p>
 
             {selectedTodos.length === 0 ? (
               <p className="text-sm text-(--text-secondary)">No tasks for this day.</p>

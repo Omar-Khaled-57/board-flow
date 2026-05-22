@@ -93,7 +93,8 @@ A running log of every change, fix, and decision during development.
 | `src/components/TodoList.tsx` | `aria-hidden` on ghost element |
 | `src/components/NLPGuide.tsx` | `aria-label` on both buttons |
 | `src/pages/Home.tsx` | Removed `undo`/`redo` selectors, removed old keyboard shortcut useEffect |
-| `src/pages/CalendarPage.tsx` | O(n)→O(1) Map-based todo lookup, removed unused `cloneDay` |
+| `src/pages/CalendarPage.tsx` | O(n)→O(1) Map-based todo lookup, removed unused `cloneDay`; moved task-count text under heading |
+| `src/pages/Options.tsx` | Daily Goals input now allows free editing, resets to default 5 on empty blur |
 | `src/pages/StatsPage.tsx` | Division-by-zero guard on both current and historical progress |
 | `src/store/useTodoStore.ts` | Merged imports, removed `reorderTodos`, type guard on `setTodoOrder`, JSDoc comments |
 | `src/store/useStatsStore.ts` | Merged imports, `DEFAULT_DAILY_GOAL` constant |

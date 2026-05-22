@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
@@ -72,6 +72,11 @@ const Options = () => {
   const setDailyGoal = useStatsStore(state => state.setDailyGoal);
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayGoal = dailyGoals[todayKey]?.goal ?? 5;
+  const [goalInput, setGoalInput] = useState(String(todayGoal));
+
+  useEffect(() => {
+    setGoalInput(String(todayGoal));
+  }, [todayGoal]);
 
   const [selectedExportList, setSelectedExportList] = useState('all');
   const [selectedImportList, setSelectedImportList] = useState('all');
@@ -389,10 +394,16 @@ const Options = () => {
               type="number"
               min="1"
               max="100"
-              value={todayGoal}
-              onChange={e => {
-                const val = parseInt(e.target.value, 10);
-                if (!isNaN(val) && val >= 1) setDailyGoal(val);
+              value={goalInput}
+              onChange={e => setGoalInput(e.target.value)}
+              onBlur={() => {
+                const val = parseInt(goalInput, 10);
+                if (isNaN(val) || val < 1) {
+                  setGoalInput('5');
+                  setDailyGoal(5);
+                } else {
+                  setDailyGoal(val);
+                }
               }}
               className="number-spinner-primary w-20 rounded-xl border border-(--border-color) bg-(--bg-color) px-3 py-2 text-center text-sm font-semibold text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
