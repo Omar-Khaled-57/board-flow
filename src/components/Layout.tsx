@@ -1,9 +1,10 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Home, Calendar, BarChart2, Settings } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTheme } from '../hooks/useTheme';
 import UndoSnackbar from './UndoSnackbar';
 import useNotificationScheduler from '../hooks/useNotificationScheduler';
+import { useTodoStore } from '../store/useTodoStore';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Tasks' },
@@ -18,6 +19,27 @@ const Layout = () => {
   const location = useLocation();
   useTheme();
   useNotificationScheduler();
+
+  const undo = useTodoStore(state => state.undo);
+  const redo = useTodoStore(state => state.redo);
+
+  // Global undo/redo keyboard shortcuts (Ctrl+Z / Ctrl+Y or Cmd+Z / Cmd+Shift+Z)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === 'z' && !e.shiftKey) {
+          e.preventDefault();
+          undo();
+        } else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) {
+          e.preventDefault();
+          redo();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo, redo]);
 
   const activeNavIndex = Math.max(
     0,

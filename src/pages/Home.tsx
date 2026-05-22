@@ -14,14 +14,12 @@ type TaskListTab = {
 const Home = () => {
   const todos = useTodoStore(state => state.todos);
   const lists = useTodoStore(state => state.lists);
-  const undo = useTodoStore(state => state.undo);
-  const redo = useTodoStore(state => state.redo);
   const addList = useTodoStore(state => state.addList);
   const deleteList = useTodoStore(state => state.deleteList);
   const renameList = useTodoStore(state => state.renameList);
   const deleteCompletedTodos = useTodoStore(state => state.deleteCompletedTodos);
   const settings = useTodoStore(state => state.settings);
-  
+
   const allTags = useMemo(() => Array.from(new Set(todos.flatMap(t => t.tags))), [todos]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
@@ -71,28 +69,6 @@ const Home = () => {
       setActiveTaskListId('all');
     }
   }, [activeTaskListId, taskListTabs]);
-
-  // Keyboard shortcuts for undo/redo in landscape mode
-  useEffect(() => {
-    const isLandscape = () => window.matchMedia('(min-width: 768px)').matches;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isLandscape()) return;
-      
-      if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'z' && !e.shiftKey) {
-          e.preventDefault();
-          undo();
-        } else if ((e.key === 'y') || (e.key === 'z' && e.shiftKey)) {
-          e.preventDefault();
-          redo();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [undo, redo]);
 
   const handleAddList = () => {
     if (newListName.trim()) {
