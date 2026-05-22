@@ -97,7 +97,7 @@ const CalendarPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col min-[aspect-ratio:4/3]:flex-row min-[aspect-ratio:4/3]:items-center justify-between gap-6">
         {/* Decorative elements */}
         <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
         <div className="absolute bottom-8 -right-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
@@ -110,7 +110,7 @@ const CalendarPage = () => {
           <p className="mt-2 font-medium text-(--text-on-primary) opacity-80">Schedule and due dates</p>
         </div>
         
-        <div className="flex items-center justify-between w-full md:w-auto md:min-w-75 bg-(--text-on-primary)/10 backdrop-blur-sm border border-(--text-on-primary)/20 text-(--text-on-primary) p-2 rounded-3xl shadow-sm z-10 relative">
+        <div className="flex items-center justify-between w-full min-[aspect-ratio:4/3]:w-auto min-[aspect-ratio:4/3]:min-w-75 bg-(--text-on-primary)/10 backdrop-blur-sm border border-(--text-on-primary)/20 text-(--text-on-primary) p-2 rounded-3xl shadow-sm z-10 relative">
           <button onClick={prevMonth} className="p-2 hover:bg-(--text-on-primary)/20 rounded-2xl transition-all" title="Previous Month">
             <ChevronLeft size={20} />
           </button>

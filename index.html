@@ -8,6 +8,50 @@
   </head>
 
   <body>
+    <!-- Apply saved theme before React mounts to prevent flash of default colors -->
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('boardflow-storage');
+          if (raw) {
+            var data = JSON.parse(raw);
+            var settings = data && data.state && data.state.settings;
+            if (settings) {
+              var theme = settings.theme || 'system';
+              if (theme === 'system') {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+              }
+              document.documentElement.classList.add(theme);
+
+              var accent = settings.accentColor || '#E84A97';
+              if (accent.toLowerCase() === '#f5f5f5') {
+                accent = theme === 'dark' ? '#ffffff' : '#111827';
+              }
+              document.documentElement.style.setProperty('--color-primary', accent);
+              document.documentElement.style.setProperty('--bg-color', theme === 'dark' ? '#0f0f0f' : '#FFF5F9');
+              document.documentElement.style.setProperty('--card-bg', theme === 'dark' ? '#1A1A1A' : '#FFFFFF');
+              document.documentElement.style.setProperty('--text-primary', theme === 'dark' ? '#FFF5F9' : '#1A1A1A');
+              document.documentElement.style.setProperty('--text-secondary', theme === 'dark' ? '#9B8FA5' : '#8B95A5');
+              document.documentElement.style.setProperty('--border-color', theme === 'dark' ? '#2D1A25' : '#F0D8E8');
+              document.documentElement.style.backgroundColor = theme === 'dark' ? '#0f0f0f' : '#FFF5F9';
+              document.documentElement.style.color = theme === 'dark' ? '#FFF5F9' : '#1A1A1A';
+              document.body.style.backgroundColor = theme === 'dark' ? '#0f0f0f' : '#FFF5F9';
+              document.body.style.color = theme === 'dark' ? '#FFF5F9' : '#1A1A1A';
+
+              var hex = accent.replace('#', '');
+              var r = parseInt(hex.substring(0, 2), 16) || 0;
+              var g = parseInt(hex.substring(2, 4), 16) || 0;
+              var b = parseInt(hex.substring(4, 6), 16) || 0;
+              var brightness = (r * 299 + g * 587 + b * 114) / 1000;
+              var textOnPrimary = brightness > 155 ? '#111827' : '#ffffff';
+              var textOnPrimaryRGB = brightness > 155 ? '17, 24, 39' : '255, 255, 255';
+              document.documentElement.style.setProperty('--text-on-primary', textOnPrimary);
+              document.documentElement.style.setProperty('--text-on-primary-rgb', textOnPrimaryRGB);
+            }
+          }
+        } catch (e) { /* ignore */ }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

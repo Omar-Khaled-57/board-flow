@@ -16,8 +16,10 @@ interface TodoState {
   addTodo: (todo: Omit<Todo, 'id' | 'createdAt'>) => void;
   updateTodo: (id: string, updates: Partial<Todo>) => void;
   deleteTodo: (id: string) => void;
+  deleteCompletedTodos: () => void;
   toggleTodo: (id: string) => void;
   reorderTodos: (startIndex: number, endIndex: number) => void;
+  setTodoOrder: (orderedIds: string[]) => void;
   
   addTag: (tag: Omit<Tag, 'id'>) => void;
   addList: (list: Omit<TaskList, 'id' | 'createdAt'>) => void;
@@ -98,6 +100,15 @@ export const useTodoStore = create<TodoState>()(
         };
       }),
 
+      deleteCompletedTodos: () => set((state) => {
+        const newTodos = state.todos.filter(t => !t.completed);
+        return {
+          todos: newTodos,
+          past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
+          future: []
+        };
+      }),
+
       toggleTodo: (id) => set((state) => {
         const newTodos = state.todos.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
         return {
@@ -107,7 +118,18 @@ export const useTodoStore = create<TodoState>()(
         };
       }),
 
-      reorderTodos: (startIndex, endIndex) => set((state) => {
+      setTodoOrder: (orderedIds: string[]) => set((state) => {
+    const idSet = new Set(orderedIds);
+    const reordered = orderedIds.map((id: string) => state.todos.find(t => t.id === id)!).filter(Boolean);
+    const remaining = state.todos.filter(t => !idSet.has(t.id));
+    return {
+      todos: [...reordered, ...remaining],
+      past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
+      future: []
+    };
+  }),
+
+  reorderTodos: (startIndex, endIndex) => set((state) => {
         const newTodos = Array.from(state.todos);
         const [removed] = newTodos.splice(startIndex, 1);
         newTodos.splice(endIndex, 0, removed);

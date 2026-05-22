@@ -8,8 +8,7 @@ import useNotificationScheduler from '../hooks/useNotificationScheduler';
 const Layout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const location = useLocation();
-  useTheme(); // apply theme classes
-  // Register the event‑driven notification scheduler
+  useTheme();
   useNotificationScheduler();
 
   const navItems = [
@@ -27,7 +26,7 @@ const Layout = () => {
     <div className="flex min-h-screen bg-(--bg-color) text-(--text-primary)">
       {/* Sidebar for desktop / large tablets */}
       <nav
-        className={`hidden md:flex shrink-0 bg-(--card-bg) border-r border-(--border-color) flex-col transition-[width] duration-300 ease-out shadow-md ${
+        className={`hidden md:flex shrink-0 sticky top-0 h-screen bg-(--card-bg) border-r border-(--border-color) flex-col transition-[width] duration-300 ease-out shadow-md ${
           isSidebarExpanded ? 'w-64' : 'w-20'
         }`}
       >
@@ -54,7 +53,7 @@ const Layout = () => {
 
         <div className="relative flex-1 px-3 mt-4">
           <div
-            className="absolute left-3 right-3 top-0 h-12 rounded-r-3xl rounded-l-none bg-primary/10 shadow-sm transition-transform duration-300 ease-out"
+            className="absolute left-3 right-3 top-0 h-12 rounded-r-3xl rounded-l-none bg-primary/10 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             style={{ transform: `translateY(${activeNavIndex * 3.5}rem)` }}
             aria-hidden="true"
           >
@@ -105,7 +104,7 @@ const Layout = () => {
         <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-(--card-bg) border-t border-(--border-color) shadow-md pb-4 portrait:pb-9">
           <div className="relative grid grid-cols-4 px-2 py-2">
             <div
-              className="absolute top-2 bottom-2 rounded-t-3xl rounded-b-none bg-primary/10 shadow-sm transition-[left] duration-300 ease-out"
+              className="absolute top-2 bottom-2 rounded-t-3xl rounded-b-none bg-primary/10 shadow-sm transition-[left] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
               style={{
                 left: `calc(0.5rem + ${activeNavIndex} * ((100% - 1rem) / 4))`,
                 width: 'calc((100% - 1rem) / 4)',

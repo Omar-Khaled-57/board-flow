@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import TaskEditor from '../components/TaskEditor';
 import TodoList from '../components/TodoList';
-import { FolderKanban, Search, Tag, Plus, Trash2, Edit2 } from 'lucide-react';
+import { FolderKanban, Search, Tag, Plus, Trash2, Edit2, CheckCheck } from 'lucide-react';
 import { useTodoStore } from '../store/useTodoStore';
 
 type TaskListTab = {
@@ -19,6 +19,7 @@ const Home = () => {
   const addList = useTodoStore(state => state.addList);
   const deleteList = useTodoStore(state => state.deleteList);
   const renameList = useTodoStore(state => state.renameList);
+  const deleteCompletedTodos = useTodoStore(state => state.deleteCompletedTodos);
   const settings = useTodoStore(state => state.settings);
   
   const allTags = useMemo(() => Array.from(new Set(todos.flatMap(t => t.tags))), [todos]);
@@ -29,6 +30,8 @@ const Home = () => {
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [editingListName, setEditingListName] = useState('');
   const [newListName, setNewListName] = useState('');
+  const tabsPanelRef = useRef<HTMLDivElement>(null);
+  const [tabsPanelHeight, setTabsPanelHeight] = useState(0);
 
   const taskListTabs = useMemo<TaskListTab[]>(() => {
     const listTabs = lists.map(list => ({
@@ -50,6 +53,12 @@ const Home = () => {
     () => taskListTabs.filter(tab => tab.id !== 'all'),
     [taskListTabs]
   );
+
+  useEffect(() => {
+    if (showTaskTabs && tabsPanelRef.current) {
+      setTabsPanelHeight(tabsPanelRef.current.scrollHeight);
+    }
+  }, [showTaskTabs, visibleTaskListTabs, editingListId, lists]);
 
   const activeTaskList = taskListTabs.find(tab => tab.id === activeTaskListId) ?? taskListTabs[0];
   const activeListId = activeTaskListId.startsWith('list:') ? activeTaskListId.split(':')[1] : undefined;
@@ -172,34 +181,51 @@ const Home = () => {
             </div>
           </div>
           
-          {allTags.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 w-full mt-1">
-              <Tag size={12} className="text-(--text-on-primary) opacity-60" />
-              {allTags.slice(0, 5).map(tag => (
-                <button 
-                  key={tag}
-                  onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
-                  className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${searchQuery === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
-                >
-                  {tag}
-                </button>
-              ))}
-              {allTags.length > 5 && (
-                <span className="text-xs font-bold text-(--text-on-primary) opacity-60 bg-[rgba(var(--text-on-primary-rgb),0.05)] px-2 py-1 rounded-full">+{allTags.length - 5}</span>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap items-center gap-2 w-full">
+            {allTags.length > 0 && (
+              <>
+                <Tag size={12} className="text-(--text-on-primary) opacity-60" />
+                {allTags.slice(0, 5).map(tag => (
+                  <button 
+                    key={tag}
+                    onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
+                    className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${searchQuery === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+                {allTags.length > 5 && (
+                  <span className="text-xs font-bold text-(--text-on-primary) opacity-60 bg-[rgba(var(--text-on-primary-rgb),0.05)] px-2 py-1 rounded-full">+{allTags.length - 5}</span>
+                )}
+              </>
+            )}
+            <span className="flex-1" />
+            <button
+              type="button"
+              onClick={() => { const completed = todos.filter(t => t.completed); if (completed.length > 0) deleteCompletedTodos(); }}
+              className="flex min-h-11 items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-bold transition-all shadow-sm backdrop-blur-sm bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]"
+              title="Delete all completed tasks"
+            >
+              <CheckCheck size={16} />
+              Clear done
+            </button>
+          </div>
         </div>
       </header>
 
       <div
-        className={`origin-top overflow-hidden transition-[max-height,opacity,transform,margin] duration-300 ease-out ${
-          showTaskTabs
-            ? '-mt-8 mb-2 max-h-[70vh] opacity-100 scale-y-100 translate-y-0'
-            : '-mt-8 mb-0 max-h-0 opacity-0 scale-y-90 -translate-y-2 pointer-events-none'
-        }`}
+        className="overflow-hidden transition-all duration-400 ease-[cubic-bezier(0.4,0,0.2,1)]"
+        style={{
+          maxHeight: showTaskTabs ? tabsPanelHeight || 500 : 0,
+          opacity: showTaskTabs ? 1 : 0,
+          transform: showTaskTabs ? 'scaleY(1) translateY(0)' : 'scaleY(0.95) translateY(-8px)',
+          marginTop: showTaskTabs ? '-2rem' : '-2rem',
+          marginBottom: showTaskTabs ? '0.5rem' : '0',
+          pointerEvents: showTaskTabs ? 'auto' : 'none' as const,
+        }}
         aria-hidden={!showTaskTabs}
       >
+        <div ref={tabsPanelRef}>
         <div className="rounded-[2rem] border border-(--border-color) bg-(--card-bg) shadow-sm shadow-[var(--shadow-color)] p-2.5 sm:p-3 flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             {visibleTaskListTabs.map(tab => {
@@ -330,6 +356,7 @@ const Home = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
       
       <div className={`flex-1 ${useStackedLandscapeLayout ? 'lg:flex lg:justify-center' : 'grid gap-6 lg:grid-cols-[0.9fr_1.1fr]'}`}>

@@ -62,6 +62,32 @@
   button, input, select, textarea {
     font: inherit;
   }
+
+  /* ─── Custom accent‑reactive scrollbars ─── */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+    border-radius: 99px;
+    transition: background 0.3s;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--color-primary) 30%, transparent) transparent;
+  }
 }
 
 @layer utilities {
@@ -93,5 +119,66 @@
 
   .transition-smooth-transform {
     @apply transition-transform duration-300 ease-in-out;
+  }
+
+  /* ─── Task animations ─── */
+
+  @keyframes task-exit {
+    0%   { opacity: 1; transform: scaleY(1); max-height: 200px; margin-bottom: 0.75rem; padding-top: 1rem; padding-bottom: 1rem; }
+    100% { opacity: 0; transform: scaleY(0); max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+  }
+
+
+
+  @keyframes fade-slide-down {
+    0%   { opacity: 0; transform: translateY(-6px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fade-slide-up {
+    0%   { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-6px); }
+  }
+
+  @keyframes scale-in {
+    0%   { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .animate-task-exit {
+    animation: task-exit 300ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    pointer-events: none;
+  }
+
+  .animate-fade-slide-down {
+    animation: fade-slide-down 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-fade-slide-up {
+    animation: fade-slide-up 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .animate-scale-in {
+    animation: scale-in 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Edit mode transition */
+  .edit-transition-enter {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  .edit-transition-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 200ms ease-out, transform 200ms ease-out;
+  }
+  .edit-transition-exit {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .edit-transition-exit-active {
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 150ms ease-in, transform 150ms ease-in;
   }
 }
