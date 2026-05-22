@@ -174,27 +174,27 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
 
   if (todos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center text-(--text-secondary)">
+      <div className="flex flex-col items-center justify-center py-20 text-center text-(--text-primary) opacity-80 dark:opacity-100">
         <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
           <Sparkles size={40} className="text-primary" />
         </div>
-        <h3 className="text-xl font-bold text-(--text-primary) mb-3">No tasks right now</h3>
-        <div className="mx-auto flex max-w-sm flex-col items-center gap-2 text-center text-sm leading-6">
+        <h3 className="text-2xl font-bold text-(--text-primary) mb-3">No tasks right now</h3>
+        <div className="mx-auto flex max-w-sm flex-col items-center gap-2.5 text-center text-sm leading-6 text-(--text-primary) dark:opacity-85">
           <p>Type naturally to auto-fill task details:</p>
           <p className="max-w-xs">
             <strong className="text-primary">Dates:</strong>{' '}
             write "tomorrow", "20 May 2027", "20/may/2027", or "20/05/27".
           </p>
           <p className="max-w-xs">
-            <strong className="text-purple-500">Tags:</strong>{' '}
+            <strong className="text-primary">Tags:</strong>{' '}
             use # to add tags, like "#home".
           </p>
           <p className="max-w-xs">
-            <strong className="text-red-500">Priority:</strong>{' '}
+            <strong className="text-primary">Priority:</strong>{' '}
             use "!!", "!high", "!med", or "!low".
           </p>
-          <div className="mt-1 w-full rounded-full border border-(--border-color) bg-(--bg-color) px-4 py-2 text-center text-xs text-(--text-primary)">
-            <em>Example: "Buy milk 20/05/27 !! #home"</em>
+          <div className="mt-1 w-full rounded-xl border border-(--border-color) bg-(--bg-color) px-4 py-3 text-center text-sm font-medium text-(--text-primary) shadow-sm">
+            Example: "Buy milk 20/05/27 !! #home"
           </div>
         </div>
       </div>
@@ -203,7 +203,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
 
   if (sortedTodos.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center text-(--text-secondary)">
+      <div className="flex flex-col items-center justify-center p-12 text-center text-(--text-primary) opacity-80 dark:opacity-100">
         <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4">
           <Search size={32} className="text-primary opacity-60" />
         </div>

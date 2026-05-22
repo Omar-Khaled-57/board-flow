@@ -26,32 +26,37 @@ const Dropdown = <T extends string>({
         <span>{items.find(i => i.id === value)?.name ?? value}</span>
         <svg className={`size-4 fill-current text-(--text-secondary) transition-transform duration-200 ${open ? 'rotate-180' : ''}`} viewBox="0 0 20 20"><path d="M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"/></svg>
       </button>
-      <div
-        className="overflow-hidden transition-[max-height,opacity] duration-300 ease-out"
-        style={{ maxHeight: open ? 500 : 0, opacity: open ? 1 : 0 }}
-      >
-        <div className={`mt-1 rounded-xl border border-(--border-color) bg-(--card-bg) py-1 shadow-lg shadow-primary/5 ${open ? 'animate-fade-slide-down' : ''}`}>
-          {items.map(item => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => { onChange(item.id); setOpen(false); }}
-              className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-primary/10 ${
-                value === item.id ? 'text-primary font-semibold' : 'text-(--text-primary)'
-              }`}
-            >
-              <span className={`size-4 shrink-0 rounded-full border-2 transition-all ${
-                value === item.id
-                  ? 'border-primary bg-primary flex items-center justify-center'
-                  : 'border-(--border-color)'
-              }`}>
-                {value === item.id && <Check size={10} className="text-(--text-on-primary)" strokeWidth={3} />}
-              </span>
-              {item.name}
-            </button>
-          ))}
+      {open && (
+        <div
+          className="absolute z-50 left-0 right-0 top-full mt-1 animate-fade-slide-down origin-top"
+        >
+          <div className="rounded-xl border border-(--border-color) bg-(--card-bg) py-1 shadow-lg shadow-primary/5 overflow-hidden">
+            {items.map((item, i) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => { onChange(item.id); setOpen(false); }}
+                className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-primary/10 ${
+                  i === 0 ? 'rounded-t-xl' : ''
+                } ${
+                  i === items.length - 1 ? 'rounded-b-xl' : ''
+                } ${
+                  value === item.id ? 'text-primary font-semibold' : 'text-(--text-primary)'
+                }`}
+              >
+                <span className={`size-4 shrink-0 rounded-full border-2 transition-all ${
+                  value === item.id
+                    ? 'border-primary bg-primary flex items-center justify-center'
+                    : 'border-(--border-color)'
+                }`}>
+                  {value === item.id && <Check size={10} className="text-(--text-on-primary)" strokeWidth={3} />}
+                </span>
+                {item.name}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
@@ -211,18 +216,30 @@ const Options = () => {
 
   const colors = ['#5b6af0', '#e85d5d', '#3cb878', '#f59e0b', '#8b5cf6', '#ec4899', '#f5f5f5', '#9ca3af', '#39ff14', '#00e5ff'];
 
+  const getCurrentTheme = () => {
+    let t = settings.theme;
+    if (t === 'system') t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return t;
+  };
+
+  const adjustBrightness = (hex: string, amount: number) => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const clamp = (v: number) => Math.min(255, Math.max(0, v));
+    const r = clamp(((num >> 16) & 0xFF) + amount);
+    const g = clamp(((num >> 8) & 0xFF) + amount);
+    const b = clamp((num & 0xFF) + amount);
+    return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
+  };
+
   const getDisplayColor = (color: string) => {
     if (color !== '#f5f5f5') return color;
-    let currentTheme = settings.theme;
-    if (currentTheme === 'system') {
-      currentTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return currentTheme === 'dark' ? '#ffffff' : '#111827';
+    return getCurrentTheme() === 'dark' ? '#ffffff' : '#111827';
   };
 
   const getSwatchBorderColor = (color: string) => {
     if (settings.accentColor !== color) return 'transparent';
-    return 'var(--text-primary)';
+    const raw = color === '#f5f5f5' ? '#111827' : color;
+    return getCurrentTheme() === 'dark' ? adjustBrightness(raw, 50) : adjustBrightness(raw, -50);
   };
 
   const getSwatchBoxShadow = (color: string) => {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PlusCircle, Calendar, Tag as TagIcon, Flag } from 'lucide-react';
+import clsx from 'clsx';
 import { useTodoStore } from '../store/useTodoStore';
 import { parseTaskInput } from '../utils/nlp';
 import { formatTaskDate } from '../utils/dateFormat';
@@ -66,26 +67,27 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
           
           <div className="flex items-center gap-3 shrink-0">
             {parsed.dueDate && (
-              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:bg-primary/20 px-2 py-1 rounded-md">
+              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md">
                 <Calendar size={14} />
                 <span>{formatTaskDate(parsed.dueDate)}</span>
               </div>
             )}
             
             {parsed.tags.map(t => (
-              <div key={t} className="flex items-center gap-1 text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400 px-2 py-1 rounded-md">
+              <div key={t} className="flex items-center gap-1 tag-pill text-primary px-2 py-1 rounded-md">
                 <TagIcon size={14} />
                 <span>{t}</span>
               </div>
             ))}
 
-            <div className={`flex items-center gap-1 px-2 py-1 rounded-md ${
-              parsed.priority === 'high' ? 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400' :
-              parsed.priority === 'low' ? 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400' :
-              'text-gray-600 bg-gray-100 dark:bg-gray-800 dark:text-gray-300'
-            }`}>
-              <Flag size={14} />
-              <span className="capitalize">{parsed.priority}</span>
+            <div className={clsx(
+              "flex items-center gap-1 px-2 py-1 rounded-md capitalize font-semibold border border-transparent",
+              parsed.priority === 'high' ? "badge-danger dark:bg-[#EF5350]/12 dark:text-[#EF5350] dark:border-[#EF5350]/22" :
+              parsed.priority === 'low' ? "badge-success dark:bg-[#66BB6A]/12 dark:text-[#66BB6A] dark:border-[#66BB6A]/22" :
+              "text-gray-600 bg-gray-100 dark:text-[#FFAB00] dark:bg-[#FFAB00]/12 dark:border-[#FFAB00]/22"
+            )}>
+              <Flag size={12} />
+              <span>{parsed.priority}</span>
             </div>
           </div>
         </div>
