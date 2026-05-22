@@ -26,6 +26,7 @@ const Home = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [showTaskTabs, setShowTaskTabs] = useState(false);
+  const [showAllTags, setShowAllTags] = useState(false);
   const [activeTaskListId, setActiveTaskListId] = useState('all');
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [editingListName, setEditingListName] = useState('');
@@ -181,29 +182,56 @@ const Home = () => {
             </div>
           </div>
           
-          <div className="flex flex-wrap items-center gap-2 w-full">
-            {allTags.length > 0 && (
-              <>
-                <Tag size={12} className="text-(--text-on-primary) opacity-60" />
-                {allTags.slice(0, 5).map(tag => (
-                  <button 
-                    key={tag}
-                    onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
-                    className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${searchQuery === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
-                  >
-                    {tag}
-                  </button>
-                ))}
-                {allTags.length > 5 && (
-                  <span className="text-xs font-bold text-(--text-on-primary) opacity-60 bg-[rgba(var(--text-on-primary-rgb),0.05)] px-2 py-1 rounded-full">+{allTags.length - 5}</span>
-                )}
-              </>
-            )}
-            <span className="flex-1" />
+          <div className="flex flex-col portrait:gap-2 landscape:flex-row landscape:flex-wrap landscape:items-center landscape:gap-2 w-full">
+            <div className="flex flex-wrap items-center gap-2 landscape:flex-1">
+              {allTags.length > 0 && (
+                <>
+                  <Tag size={12} className="text-(--text-on-primary) opacity-60 shrink-0" />
+                  {allTags.slice(0, 5).map(tag => (
+                    <button 
+                      key={tag}
+                      onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${searchQuery === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                  {allTags.length > 5 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllTags(o => !o)}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border cursor-pointer shrink-0 ${
+                        showAllTags
+                          ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary)'
+                          : 'text-(--text-on-primary) opacity-60 bg-[rgba(var(--text-on-primary-rgb),0.05)] border-transparent hover:opacity-100 hover:bg-[rgba(var(--text-on-primary-rgb),0.1)]'
+                      }`}
+                    >
+                      {showAllTags ? `-${allTags.length - 5}` : `+${allTags.length - 5}`}
+                    </button>
+                  )}
+                </>
+              )}
+              <div
+                className="overflow-hidden transition-[max-height] duration-300 ease-out w-full"
+                style={{ maxHeight: showAllTags ? 500 : 0 }}
+              >
+                <div className="flex flex-wrap items-center gap-2 pt-1.5">
+                  {allTags.slice(5).map(tag => (
+                    <button 
+                      key={tag}
+                      onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${searchQuery === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
             <button
               type="button"
               onClick={() => { const completed = todos.filter(t => t.completed); if (completed.length > 0) deleteCompletedTodos(); }}
-              className="flex min-h-11 items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-bold transition-all shadow-sm backdrop-blur-sm bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]"
+              className="flex min-h-11 items-center justify-center gap-2 px-4 py-2.5 rounded-full border text-sm font-bold transition-all shadow-sm backdrop-blur-sm bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:bg-[rgba(var(--text-on-primary-rgb),0.2)] portrait:w-full landscape:self-auto"
               title="Delete all completed tasks"
             >
               <CheckCheck size={16} />

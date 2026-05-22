@@ -31,7 +31,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
     if (listId && todo.listId !== listId) return false;
     if (tagFilter && !todo.tags.includes(tagFilter)) return false;
     if (showUnlistedOnly && todo.listId) return false;
-    if (searchQuery.trim() && !todo.title.toLowerCase().includes(searchQuery.toLowerCase())) return false;
+    if (searchQuery.trim() && !todo.title.toLowerCase().includes(searchQuery.toLowerCase()) && !todo.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()))) return false;
     if (filter === 'active' && todo.completed) return false;
     if (filter === 'completed' && !todo.completed) return false;
     return true;
@@ -241,10 +241,10 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
       {/* Floating ghost — translucent copy following the cursor */}
       {ghostPos && ghostTaskRef.current && (
         <div
-          className="fixed z-50 pointer-events-none transition-[opacity] duration-75"
+          className="fixed z-50 pointer-events-none transition-opacity duration-75"
           style={{ left: ghostPos.x, top: ghostPos.y }}
         >
-          <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-(--card-bg)/90 backdrop-blur-sm shadow-xl opacity-85 max-w-[260px]">
+          <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-(--card-bg)/90 backdrop-blur-sm shadow-xl opacity-85 max-w-65">
             <div className="mt-0.5 shrink-0 text-primary/50">
               <GripVertical size={14} />
             </div>

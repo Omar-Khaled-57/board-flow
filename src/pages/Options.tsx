@@ -97,7 +97,7 @@ const Options = () => {
       const json = JSON.stringify(payload, null, 2);
       const filename = `boardflow-tasks-${listId === 'all' ? 'all' : listId}.json`;
 
-      // Method 1: anchor click with download attribute (works in most browsers)
+      // Method 1: anchor click with download attribute
       let downloadAttempted = false;
       try {
         const file = new Blob([json], { type: 'application/json' });
@@ -106,7 +106,6 @@ const Options = () => {
         anchor.href = url;
         anchor.download = filename;
         anchor.rel = 'noopener';
-        // Must have non-zero dimensions for the click to register
         anchor.style.position = 'fixed';
         anchor.style.left = '10px';
         anchor.style.top = '10px';
@@ -125,7 +124,6 @@ const Options = () => {
       }
 
       if (!downloadAttempted) {
-        // Method 2: data URI fallback
         try {
           const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
           const w = window.open(dataUri, '_blank');
@@ -136,7 +134,6 @@ const Options = () => {
             throw new Error('popup blocked');
           }
         } catch {
-          // Method 3: show JSON in textarea for manual save
           setShowFallback(json);
           setExportMessage('Auto-download failed. Copy the JSON below and save it as a .json file.');
         }
