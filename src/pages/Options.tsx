@@ -394,7 +394,7 @@ const Options = () => {
                 const val = parseInt(e.target.value, 10);
                 if (!isNaN(val) && val >= 1) setDailyGoal(val);
               }}
-              className="w-20 rounded-xl border border-(--border-color) bg-(--bg-color) px-3 py-2 text-center text-sm font-semibold text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="number-spinner-primary w-20 rounded-xl border border-(--border-color) bg-(--bg-color) px-3 py-2 text-center text-sm font-semibold text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
         </section>
