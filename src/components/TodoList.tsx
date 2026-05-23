@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTodoStore } from '../store/useTodoStore';
 import TaskItem from './TaskItem';
 import { Todo } from '../types';
@@ -45,15 +46,80 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
     return 0;
   }), [filteredTodos, settings.completedToBottom]);
 
+  // ── FLIP animation for completedToBottom reordering ──
+  const prevPositionsRef = useRef<Map<string, DOMRect>>(new Map());
+  const prevSortedIdsRef = useRef<string[]>([]);
+  const flipAnimatingRef = useRef(false);
+
+  useLayoutEffect(() => {
+    if (!settings.completedToBottom || draggedId) return;
+
+    const container = listRef.current;
+    if (!container) return;
+
+    const currentIds = sortedTodos.map(t => t.id);
+    const prevIds = prevSortedIdsRef.current;
+    const prevPositions = prevPositionsRef.current;
+
+    const items = container.querySelectorAll<HTMLElement>('[data-flipid]');
+    const currentRects = new Map<string, DOMRect>();
+    items.forEach(el => {
+      const id = el.dataset.flipid;
+      if (id) currentRects.set(id, el.getBoundingClientRect());
+    });
+
+    if (prevIds.length > 0 && prevPositions.size > 0 && !flipAnimatingRef.current) {
+      let hasFlip = false;
+
+      items.forEach(el => {
+        const id = el.dataset.flipid;
+        if (!id) return;
+        const prev = prevPositions.get(id);
+        const curr = currentRects.get(id);
+        if (prev && curr) {
+          const dy = prev.top - curr.top;
+          const dx = prev.left - curr.left;
+          if (Math.abs(dy) > 1 || Math.abs(dx) > 1) {
+            el.style.transform = `translate(${dx}px, ${dy}px)`;
+            hasFlip = true;
+          }
+        }
+      });
+
+      if (hasFlip) {
+        flipAnimatingRef.current = true;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            items.forEach(el => {
+              el.style.transition = 'transform 300ms ease';
+              el.style.transform = '';
+            });
+            setTimeout(() => {
+              items.forEach(el => {
+                el.style.transition = '';
+                el.style.transform = '';
+              });
+              flipAnimatingRef.current = false;
+            }, 350);
+          });
+        });
+      }
+    }
+
+    prevPositionsRef.current = currentRects;
+    prevSortedIdsRef.current = currentIds;
+  }, [sortedTodos, settings.completedToBottom, draggedId]);
+
   useEffect(() => { draggedIdRef.current = draggedId; }, [draggedId]);
   useEffect(() => { dropYRef.current = dropY; }, [dropY]);
   useEffect(() => { sortedRef.current = sortedTodos; }, [sortedTodos]);
   useEffect(() => { filteredRef.current = filteredTodos; }, [filteredTodos]);
 
-  const handlePointerDown = useCallback((_e: React.PointerEvent, id: string) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent, id: string) => {
     setDraggedId(id);
     const task = sortedTodos.find(t => t.id === id);
     ghostTaskRef.current = task ?? null;
+    setGhostPos({ x: e.clientX, y: e.clientY });
   }, [sortedTodos]);
 
   useEffect(() => {
@@ -61,7 +127,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
 
     const handlePointerMove = (e: PointerEvent) => {
       // Update ghost position
-      setGhostPos({ x: e.clientX + 16, y: e.clientY - 30 });
+      setGhostPos({ x: e.clientX, y: e.clientY });
 
       // Calculate drop position based on task element boundaries
       const listEl = listRef.current;
@@ -218,12 +284,13 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
       {showTaskList && (
         <div className="relative flex flex-col gap-3">
           {sortedTodos.map(todo => (
-            <TaskItem
-              key={todo.id}
-              task={todo}
-              isDragging={draggedId === todo.id}
-              onPointerDown={handlePointerDown}
-            />
+            <div key={todo.id} data-flipid={todo.id}>
+              <TaskItem
+                task={todo}
+                isDragging={draggedId === todo.id}
+                onPointerDown={handlePointerDown}
+              />
+            </div>
           ))}
         </div>
       )}
@@ -242,11 +309,11 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
         </div>
       )}
 
-      {/* Floating ghost — translucent copy following the cursor */}
-      {ghostPos && ghostTaskRef.current && (
+      {/* Floating ghost — portaled to body to escape ancestor clipping */}
+      {ghostPos && ghostTaskRef.current && createPortal(
         <div
-          className="fixed z-50 pointer-events-none transition-opacity duration-75"
-          style={{ left: ghostPos.x, top: ghostPos.y }}
+          className="fixed z-50 pointer-events-none"
+          style={{ left: ghostPos.x - 8, top: ghostPos.y - 8 }}
           aria-hidden="true"
         >
           <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-(--card-bg)/90 backdrop-blur-sm shadow-xl opacity-85 max-w-65">
@@ -267,7 +334,8 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
               )}
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

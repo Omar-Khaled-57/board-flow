@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Calendar, Clock, Tag as TagIcon, Flag, Trash2, CheckCircle2, Circle, GripVertical, Edit2, X } from 'lucide-react';
+import { marked } from 'marked';
+import clsx from 'clsx';
 import { Todo, Priority } from '../types';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
-import { Calendar, Clock, Tag as TagIcon, Flag, Trash2, CheckCircle2, Circle, GripVertical, Edit2, X } from 'lucide-react';
 import { formatTaskDate, formatTaskTime } from '../utils/dateFormat';
-import { marked } from 'marked';
-import clsx from 'clsx';
 import { playCompleteSound } from '../utils/audio';
 import { parseTaskInput } from '../utils/nlp';
 
@@ -140,12 +140,12 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
         isEditing ? "gap-0" : "gap-3",
         !isEditing && "select-none",
         task.completed
-          ? "bg-gray-50/50 dark:bg-gray-800/20 border-transparent"
-          : "bg-(--card-bg) border-(--border-color) shadow-sm hover:shadow-md hover:border-primary-light dark:hover:border-primary/50",
+          ? "bg-[#E7EBEF] dark:bg-[#1A1F26] border-transparent"
+          : "bg-(--card-bg) border-(--border-color) shadow-sm hover:shadow-md hover:border-primary-light dark:hover:bg-[#252B33] dark:hover:shadow-[0_0_10px_var(--color-primary)] dark:hover:border-primary/50",
         isDragging ? "opacity-50 scale-[0.98] shadow-lg border-primary" : "",
         isExiting ? "animate-task-exit" : "",
         isCompleting ? "opacity-60 scale-[0.98]" : "",
-        (task.completed && !isCompleting) ? "opacity-60 scale-[0.98]" : ""
+        (task.completed && !isCompleting) ? "opacity-80 scale-[0.98]" : ""
       )}
     >
       {/* Drag handle — initiates pointer drag */}
@@ -198,7 +198,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
           {/* Meta info row */}
           <div className={clsx(
             "flex flex-wrap items-center gap-3 mt-2 text-xs transition-all duration-500",
-            (task.completed || isCompleting) && "opacity-40"
+            (task.completed || isCompleting) && "opacity-60"
           )}>
              {task.dueDate && (
               <div className={clsx(
@@ -362,24 +362,30 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
         </div>
       </div>
 
-      <div className={clsx("shrink-0 flex items-center gap-1 transition-opacity", isEditing ? "hidden" : "opacity-100 md:opacity-0 md:group-hover:opacity-100")}>
-        <button
-          type="button"
-          onClick={() => setIsEditing(open => !open)}
-          aria-label="Edit task"
-          className="grid min-h-10 w-10 place-items-center rounded-full text-gray-400 hover:text-primary hover:bg-(--bg-color) transition-colors"
-        >
-          <Edit2 size={16} />
-        </button>
-        <button
-          type="button"
-          onClick={handleDelete}
-          aria-label="Delete task"
-          className="grid min-h-10 w-10 place-items-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-        >
-          <Trash2 size={18} />
-        </button>
-      </div>
+      {(!settings.hideEditInTasks || !settings.hideDeleteInTasks) && (
+        <div className={clsx("shrink-0 flex items-center gap-1 transition-opacity", isEditing ? "hidden" : "opacity-100 md:opacity-0 md:group-hover:opacity-100", settings.verticalActionButtons && "flex-col")}>
+          {!settings.hideEditInTasks && (
+            <button
+              type="button"
+              onClick={() => setIsEditing(open => !open)}
+              aria-label="Edit task"
+              className="grid min-h-10 w-10 place-items-center rounded-full text-gray-400 hover:text-primary hover:bg-(--bg-color) transition-colors"
+            >
+              <Edit2 size={16} />
+            </button>
+          )}
+          {!settings.hideDeleteInTasks && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              aria-label="Delete task"
+              className="grid min-h-10 w-10 place-items-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            >
+              <Trash2 size={18} />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 };

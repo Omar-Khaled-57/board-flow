@@ -62,6 +62,60 @@ const Dropdown = <T extends string>({
   );
 };
 
+const ClearStatsButton = () => {
+  const clearStats = useStatsStore(state => state.clearStats);
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <div
+      className={`grid transition-all duration-300 ease-out rounded-xl border ${
+        confirming
+          ? 'border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 shadow-sm'
+          : 'border-transparent'
+      }`}
+    >
+      <div
+        className={`col-start-1 row-start-1 transition-all duration-300 ease-out ${
+          confirming ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
+        }`}
+        aria-hidden={confirming}
+      >
+        <button
+          type="button"
+          onClick={() => setConfirming(true)}
+          className="inline-flex items-center justify-center rounded-full border border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 px-4 py-2.5 text-sm font-semibold text-[#B91C1C] dark:text-red-400 transition-all hover:bg-[#FEE2E2]/80 dark:hover:bg-red-900/20 hover:shadow-md active:scale-95"
+        >
+          Clear Stats
+        </button>
+      </div>
+      <div
+        className={`col-start-1 row-start-1 transition-all duration-300 ease-out ${
+          confirming ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+        }`}
+        aria-hidden={!confirming}
+      >
+        <div className="flex items-center gap-3 px-4 py-2.5">
+          <p className="text-sm font-medium text-[#B91C1C] dark:text-red-400">This will permanently erase all statistics data.</p>
+          <button
+            type="button"
+            onClick={() => { clearStats(); setConfirming(false); }}
+            className="inline-flex items-center justify-center rounded-full bg-red-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-600 active:scale-95"
+          >
+            Confirm
+          </button>
+          <button
+            type="button"
+            onClick={() => setConfirming(false)}
+            className="inline-flex items-center justify-center rounded-full border border-(--border-color) bg-(--bg-color) px-3.5 py-1.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--card-bg) active:scale-95"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Options = () => {
   const settings = useTodoStore(state => state.settings);
   const updateSettings = useTodoStore(state => state.updateSettings);
@@ -334,7 +388,7 @@ const Options = () => {
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4 border-b border-(--border-color) pb-2">Behavior</h2>
+          <h2 className="text-xl font-semibold mb-4 border-b border-(--border-color) pb-2">Interface</h2>
           
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -383,30 +437,66 @@ const Options = () => {
                 className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
+
+            <div className="flex items-center justify-between">
+              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Hide Edit in Tasks</label>
+              <input
+                title="Hide Edit in Tasks"
+                type="checkbox"
+                checked={!!settings.hideEditInTasks}
+                onChange={e => updateSettings({ hideEditInTasks: e.target.checked })}
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Hide Delete in Tasks</label>
+              <input
+                title="Hide Delete in Tasks"
+                type="checkbox"
+                checked={!!settings.hideDeleteInTasks}
+                onChange={e => updateSettings({ hideDeleteInTasks: e.target.checked })}
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Vertical action buttons</label>
+              <input
+                title="Stack edit/delete buttons vertically"
+                type="checkbox"
+                checked={!!settings.verticalActionButtons}
+                onChange={e => updateSettings({ verticalActionButtons: e.target.checked })}
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+              />
+            </div>
           </div>
         </section>
 
         <section>
-          <h2 className="text-xl font-semibold mb-4 border-b border-(--border-color) pb-2">Daily Goals</h2>
-          <div className="flex items-center justify-between">
-            <label className="font-medium text-(--text-secondary)">Daily task completion target</label>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              value={goalInput}
-              onChange={e => setGoalInput(e.target.value)}
-              onBlur={() => {
-                const val = parseInt(goalInput, 10);
-                if (isNaN(val) || val < 1) {
-                  setGoalInput('5');
-                  setDailyGoal(5);
-                } else {
-                  setDailyGoal(val);
-                }
-              }}
-              className="number-spinner-primary w-20 rounded-xl border border-(--border-color) bg-(--bg-color) px-3 py-2 text-center text-sm font-semibold text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
+          <h2 className="text-xl font-semibold mb-4 border-b border-(--border-color) pb-2">Statistics</h2>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="font-medium text-(--text-secondary)">Daily task completion target</label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={goalInput}
+                onChange={e => setGoalInput(e.target.value)}
+                onBlur={() => {
+                  const val = parseInt(goalInput, 10);
+                  if (isNaN(val) || val < 1) {
+                    setGoalInput('5');
+                    setDailyGoal(5);
+                  } else {
+                    setDailyGoal(val);
+                  }
+                }}
+                className="number-spinner-primary w-20 rounded-xl border border-(--border-color) bg-(--bg-color) px-3 py-2 text-center text-sm font-semibold text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <ClearStatsButton />
           </div>
         </section>
 

@@ -42,6 +42,9 @@ export interface Settings {
   addToTop: boolean;
   completedToBottom: boolean;
   landscapeStackedTasks: boolean;
+  hideEditInTasks: boolean;
+  hideDeleteInTasks: boolean;
+  verticalActionButtons: boolean;
 }
 
 export interface DailyGoal {

@@ -35,6 +35,7 @@ const applyTheme = (theme: string, accentColor: string) => {
 
   // Apply theme CSS vars as inline styles to override the inline script's initial values
   const vars = themeVars[finalTheme];
+  if (!vars) return;
   for (const [key, val] of Object.entries(vars)) {
     root.style.setProperty(key, val);
   }
@@ -67,6 +68,11 @@ const applyTheme = (theme: string, accentColor: string) => {
     tagTextColor = `#${((tr << 16) | (tg << 8) | tb).toString(16).padStart(6, '0')}`;
   }
   root.style.setProperty('--color-primary-readable', tagTextColor);
+
+  // Brighter, more vibrant version for pulse rings and accent highlights
+  const shift = (c: number): number => Math.min(255, c + 46);
+  const saturatedAccent = `#${((shift(r) << 16) | (shift(g) << 8) | shift(b)).toString(16).padStart(6, '0')}`;
+  root.style.setProperty('--color-primary-saturated', saturatedAccent);
 };
 
 export const useTheme = () => {

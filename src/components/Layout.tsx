@@ -120,9 +120,9 @@ const Layout = () => {
         <main className="flex-1 overflow-auto p-4 md:p-8 pb-32 md:pb-8 animate-fade-in">
           <div className="max-w-7xl mx-auto h-full relative">
             <Outlet />
-            <UndoSnackbar />
           </div>
         </main>
+        <UndoSnackbar />
 
         {/* Bottom navigation for mobile */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-(--card-bg) border-t border-(--border-color) shadow-md pb-4 portrait:pb-9">

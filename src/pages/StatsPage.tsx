@@ -1,6 +1,6 @@
-import { useStatsStore } from '../store/useStatsStore';
 import { Flame, Target, Trophy, TrendingUp } from 'lucide-react';
 import { format, subDays } from 'date-fns';
+import { useStatsStore } from '../store/useStatsStore';
 
 const StatsPage = () => {
   const stats = useStatsStore();
@@ -11,7 +11,10 @@ const StatsPage = () => {
   const todayStats = stats.dailyGoals[today] || { completedCount: 0, goal: 5 };
 
   const safeGoal = todayStats.goal > 0 ? todayStats.goal : 1;
-  const progressPercent = Math.min(100, Math.round((todayStats.completedCount / safeGoal) * 100)) || 0;
+  const rawPercent = Math.round((todayStats.completedCount / safeGoal) * 100) || 0;
+  const displayPercent = rawPercent;
+  const circlePercent = Math.min(100, rawPercent);
+  const isOverGoal = rawPercent >= 100;
 
   const hasNoData = Object.keys(stats.dailyGoals).length === 0 || Object.values(stats.dailyGoals).every(g => g.completedCount === 0);
 
@@ -68,7 +71,7 @@ const StatsPage = () => {
           </h3>
           
           <div className="relative w-32 h-32 flex items-center justify-center mb-4">
-            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+            <svg className="w-full h-full transform -rotate-90" viewBox="-5 -5 110 110">
               <circle 
                 cx="50" cy="50" r="40" 
                 fill="transparent" 
@@ -81,13 +84,19 @@ const StatsPage = () => {
                 stroke="var(--color-primary)" 
                 strokeWidth="8" 
                 strokeDasharray="251.2" 
-                strokeDashoffset={251.2 - (251.2 * progressPercent) / 100}
+                strokeDashoffset={251.2 - (251.2 * circlePercent) / 100}
                 className="transition-all duration-1000 ease-out"
                 strokeLinecap="round"
               />
+              {isOverGoal && (
+                <>
+                  <circle cx="50" cy="50" r="44" fill="transparent" stroke="var(--color-primary-saturated)" strokeWidth="0" className="animate-pulse-ring-1" />
+                  <circle cx="50" cy="50" r="48" fill="transparent" stroke="var(--color-primary)" strokeWidth="0" className="animate-pulse-ring-2" />
+                </>
+              )}
             </svg>
             <div className="absolute flex flex-col items-center">
-              <span className="text-3xl font-bold">{progressPercent}%</span>
+              <span className="text-3xl font-bold">{displayPercent}%</span>
             </div>
           </div>
           

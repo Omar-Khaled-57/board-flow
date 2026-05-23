@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @custom-variant min-aspect-4-3 (@media (min-aspect-ratio: 4/3));
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ─── QueueLess-inspired palette for BoardFlow ─── */
 @theme {
@@ -25,7 +26,7 @@
     --card-bg:         #FFFFFF;
     --text-primary:    #1A1A1A;
     --text-secondary:  #8B95A5;
-    --text-completed:  #BCC5D3;
+    --text-completed:  #6B7280;
     --border-color:    #F0D8E8;
     --shadow-color:    rgba(232, 74, 151, 0.10);
   }
@@ -35,7 +36,7 @@
     --card-bg:        #222227;
     --text-primary:   #FFF5F9;
     --text-secondary: #9B8FA5;
-    --text-completed: #4A3A52;
+    --text-completed: #9AA4B2;
     --border-color:   color-mix(in srgb, var(--color-primary) 20%, transparent);
     --shadow-color:   rgba(0, 0, 0, 0.5);
   }
@@ -115,6 +116,26 @@
   @keyframes task-exit {
     0%   { opacity: 1; transform: scaleY(1); max-height: 200px; margin-bottom: 0.75rem; padding-top: 1rem; padding-bottom: 1rem; }
     100% { opacity: 0; transform: scaleY(0); max-height: 0; margin-bottom: 0; padding-top: 0; padding-bottom: 0; }
+  }
+
+  @keyframes pulse-ring-inner {
+    0%, 100% { opacity: 0;    stroke-width: 0; }
+    15%      { opacity: 0.6; stroke-width: 5; }
+    25%      { opacity: 0.6; stroke-width: 5; }
+    80%      { opacity: 0;    stroke-width: 0; }
+  }
+  @keyframes pulse-ring-outer {
+    0%, 100% { opacity: 0;     stroke-width: 0; }
+    30%      { opacity: 0.15; stroke-width: 7; }
+    35%      { opacity: 0.15; stroke-width: 7; }
+    55%      { opacity: 0;     stroke-width: 0; }
+  }
+
+  .animate-pulse-ring-1 {
+    animation: pulse-ring-inner 3s ease-in-out infinite;
+  }
+  .animate-pulse-ring-2 {
+    animation: pulse-ring-outer 3s ease-in-out infinite;
   }
 
   .animate-fade-slide-down {

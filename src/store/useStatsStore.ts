@@ -12,6 +12,7 @@ interface StatsState {
 
   incrementCompletedToday: () => void;
   setDailyGoal: (goal: number) => void;
+  clearStats: () => void;
 }
 
 const getTodayString = () => {
@@ -61,6 +62,12 @@ export const useStatsStore = create<StatsState>()(
             [today]: { ...existing, goal }
           }
         };
+      }),
+
+      clearStats: () => set({
+        dailyGoals: {},
+        currentStreak: 0,
+        longestStreak: 0,
       })
     }),
     {

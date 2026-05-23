@@ -43,6 +43,9 @@ const defaultSettings: Settings = {
   addToTop: false,
   completedToBottom: false,
   landscapeStackedTasks: true,
+  hideEditInTasks: false,
+  hideDeleteInTasks: false,
+  verticalActionButtons: false,
 };
 
 const generateId = () => Math.random().toString(36).substring(2, 2 + ID_LENGTH);

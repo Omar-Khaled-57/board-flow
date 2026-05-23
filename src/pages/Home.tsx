@@ -369,9 +369,9 @@ const Home = () => {
         <div className={`flex flex-col gap-6 ${useStackedLandscapeLayout ? 'lg:w-[82%] lg:max-w-5xl' : ''}`}>
           <TaskEditor listId={activeListId} />
 
-          <div className={`bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-4 md:p-6 overflow-hidden flex flex-col ${useStackedLandscapeLayout ? '' : 'lg:hidden'}`}>
+          <div className={`bg-(--card-bg)/70 rounded-xl shadow-sm border border-(--border-color) p-4 md:p-6 flex flex-col ${useStackedLandscapeLayout ? '' : 'lg:hidden'}`}>
             <h2 className="text-xl font-semibold mb-4">{activeTaskList.label} Tasks</h2>
-            <div className="overflow-y-auto pr-2 -mr-2">
+            <div className="overflow-y-auto pl-2 pt-3 pb-3 pr-2 -ml-2 -mr-2">
               <TodoList
                 searchQuery={searchQuery}
                 filter={filter}
@@ -383,9 +383,9 @@ const Home = () => {
         </div>
 
         {!useStackedLandscapeLayout && (
-        <div className="hidden lg:flex flex-col bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-4 md:p-6 overflow-hidden">
+        <div className="hidden lg:flex flex-col bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-4 md:p-6">
           <h2 className="text-xl font-semibold mb-4">{activeTaskList.label} Tasks</h2>
-          <div className="overflow-y-auto pr-2 -mr-2">
+          <div className="overflow-y-auto pl-3 pt-3 pb-3 pr-2 -mr-2">
             <TodoList
               searchQuery={searchQuery}
               filter={filter}
