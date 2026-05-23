@@ -1,4 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
+import { save } from '@tauri-apps/plugin-dialog';
+import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
@@ -94,22 +96,24 @@ const ClearStatsButton = () => {
         }`}
         aria-hidden={!confirming}
       >
-        <div className="flex items-center gap-3 px-4 py-2.5">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 py-2.5">
           <p className="text-sm font-medium text-[#B91C1C] dark:text-red-400">This will permanently erase all statistics data.</p>
-          <button
-            type="button"
-            onClick={() => { clearStats(); setConfirming(false); }}
-            className="inline-flex items-center justify-center rounded-full bg-red-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-600 active:scale-95"
-          >
-            Confirm
-          </button>
-          <button
-            type="button"
-            onClick={() => setConfirming(false)}
-            className="inline-flex items-center justify-center rounded-full border border-(--border-color) bg-(--bg-color) px-3.5 py-1.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--card-bg) active:scale-95"
-          >
-            Cancel
-          </button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => { clearStats(); setConfirming(false); }}
+              className="inline-flex items-center justify-center rounded-full bg-red-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-600 active:scale-95"
+            >
+              Confirm
+            </button>
+            <button
+              type="button"
+              onClick={() => setConfirming(false)}
+              className="inline-flex items-center justify-center rounded-full border border-(--border-color) bg-(--bg-color) px-3.5 py-1.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--card-bg) active:scale-95"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -141,7 +145,7 @@ const Options = () => {
 
   const normalizedLists = [{ id: 'all', name: 'All tasks' }, ...lists];
 
-  const handleExportTasks = () => {
+  const handleExportTasks = async () => {
     try {
       const listId = selectedExportList;
       const exportTasks = listId === 'all'
@@ -166,49 +170,38 @@ const Options = () => {
       const json = JSON.stringify(payload, null, 2);
       const filename = `boardflow-tasks-${listId === 'all' ? 'all' : listId}.json`;
 
-      // Method 1: anchor click with download attribute
-      let downloadAttempted = false;
-      try {
-        const file = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(file);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = filename;
-        anchor.rel = 'noopener';
-        anchor.style.position = 'fixed';
-        anchor.style.left = '10px';
-        anchor.style.top = '10px';
-        anchor.style.width = '1px';
-        anchor.style.height = '1px';
-        anchor.style.opacity = '0';
-        document.body.appendChild(anchor);
-        anchor.click();
-        document.body.removeChild(anchor);
-        setTimeout(() => URL.revokeObjectURL(url), 10000);
-        downloadAttempted = true;
-        setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'}. Check your browser's download folder.`);
-        setShowFallback('');
-      } catch {
-        downloadAttempted = false;
-      }
+      const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
 
-      if (!downloadAttempted) {
+      if (isTauri) {
+        const filePath = await save({
+          defaultPath: filename,
+          filters: [{ name: 'JSON', extensions: ['json'] }],
+        });
+        if (filePath) {
+          await writeTextFile(filePath, json);
+          setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'} to ${filePath}.`);
+        }
+      } else {
         try {
-          const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(json);
-          const w = window.open(dataUri, '_blank');
-          if (w) {
-            setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'}. If the file didn't download, use Ctrl+S to save the page as .json.`);
-            setShowFallback('');
-          } else {
-            throw new Error('popup blocked');
-          }
+          const file = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(file);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          anchor.rel = 'noopener';
+          anchor.style.display = 'none';
+          document.body.appendChild(anchor);
+          anchor.click();
+          document.body.removeChild(anchor);
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+          setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'}. Check your browser's download folder.`);
         } catch {
           setShowFallback(json);
           setExportMessage('Auto-download failed. Copy the JSON below and save it as a .json file.');
         }
       }
     } catch (e) {
-      setExportMessage('Export failed. Please try again.');
+      setExportMessage('Export failed: ' + (e instanceof Error ? e.message : 'unknown error'));
       console.error('Export failed:', e);
     }
   };

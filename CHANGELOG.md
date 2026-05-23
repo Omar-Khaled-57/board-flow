@@ -4,6 +4,18 @@ A running log of every change, fix, and decision during development.
 
 ---
 
+## v0.5.2 — Android Export Fix
+
+**Focus**: Replace browser blob-download with Tauri native save dialog + fs plugin so export works on Android.
+
+### 🐛 Bug Fixes
+- **Export broken on Android** — `Blob` + `<a download>` doesn't work in Android WebView; replaced with `@tauri-apps/plugin-dialog` (`save()`) and `@tauri-apps/plugin-fs` (`writeTextFile()`). Falls back to blob download in browser mode.
+
+### 🧹 Changes
+- Added `tauri-plugin-dialog` and `tauri-plugin-fs` (npm + Cargo) with `dialog:allow-save` and `fs:allow-write-text-file` capabilities
+- Version bumped to `0.5.2`
+- **Clear Stats confirmation layout** — responsive flex: landscape uses `flex-row justify-between` (text left, buttons right); portrait uses `flex-col` with buttons at right bottom via `self-end`
+
 ## v0.5.0 — UI Polish, Animation Control & Readability
 
 **Focus**: Refine overachiever glow animation, add saturated accent color variable, improve checked task readability, fix dark mode class mismatch, drag ghost portal, consistency review.

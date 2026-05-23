@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTheme } from './hooks/useTheme';
 import Layout from './components/Layout';
 import Home from './pages/Home';
 import CalendarPage from './pages/CalendarPage';
@@ -8,6 +9,7 @@ import Options from './pages/Options';
 import SplashScreen from './components/SplashScreen';
 
 function App() {
+  useTheme();
   const [showSplash, setShowSplash] = useState(() => {
     try {
       return !localStorage.getItem('hasSeenSplash');

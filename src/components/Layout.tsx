@@ -1,7 +1,6 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { Home, Calendar, BarChart2, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useTheme } from '../hooks/useTheme';
 import UndoSnackbar from './UndoSnackbar';
 import useNotificationScheduler from '../hooks/useNotificationScheduler';
 import { useTodoStore } from '../store/useTodoStore';
@@ -17,7 +16,6 @@ const navItems = [
 const Layout = () => {
   const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const location = useLocation();
-  useTheme();
   useNotificationScheduler();
 
   const undo = useTodoStore(state => state.undo);
