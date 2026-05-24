@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { DailyGoal } from '../types';
 import { getStorageAdapter } from './storage';
+import { sendNativeNotification } from '../utils/notifications';
 
 const DEFAULT_DAILY_GOAL = 5;
 
@@ -27,31 +28,40 @@ export const useStatsStore = create<StatsState>()(
       currentStreak: 0,
       longestStreak: 0,
 
-      incrementCompletedToday: () => set((state) => {
-        const today = getTodayString();
-        const existing = state.dailyGoals[today] || { date: today, completedCount: 0, goal: DEFAULT_DAILY_GOAL };
+      incrementCompletedToday: () => {
+        let justReachedGoal = false;
 
-        const newCompleted = existing.completedCount + 1;
-        let newStreak = state.currentStreak;
-        let newLongest = state.longestStreak;
+        set((state) => {
+          const today = getTodayString();
+          const existing = state.dailyGoals[today] || { date: today, completedCount: 0, goal: DEFAULT_DAILY_GOAL };
 
-        // Bump streak when the daily goal was met exactly by this completion
-        if (existing.completedCount < existing.goal && newCompleted >= existing.goal) {
-          newStreak += 1;
-          if (newStreak > newLongest) {
-            newLongest = newStreak;
+          const newCompleted = existing.completedCount + 1;
+          let newStreak = state.currentStreak;
+          let newLongest = state.longestStreak;
+
+          justReachedGoal = existing.completedCount < existing.goal && newCompleted >= existing.goal;
+
+          if (justReachedGoal) {
+            newStreak += 1;
+            if (newStreak > newLongest) {
+              newLongest = newStreak;
+            }
           }
-        }
 
-        return {
-          dailyGoals: {
-            ...state.dailyGoals,
-            [today]: { ...existing, completedCount: newCompleted }
-          },
-          currentStreak: newStreak,
-          longestStreak: newLongest,
-        };
-      }),
+          return {
+            dailyGoals: {
+              ...state.dailyGoals,
+              [today]: { ...existing, completedCount: newCompleted }
+            },
+            currentStreak: newStreak,
+            longestStreak: newLongest,
+          };
+        });
+
+        if (justReachedGoal) {
+          sendNativeNotification('🎯 Daily Goal Reached!', 'You\'ve completed all your tasks for today. Great job!');
+        }
+      },
 
       setDailyGoal: (goal: number) => set((state) => {
         const today = getTodayString();

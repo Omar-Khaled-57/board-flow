@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
+import { version } from '../../package.json';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
@@ -177,32 +178,43 @@ const Options = () => {
           defaultPath: filename,
           filters: [{ name: 'JSON', extensions: ['json'] }],
         });
-        if (filePath) {
+        if (!filePath) {
+          setExportMessage('Export cancelled.');
+          return;
+        }
+        try {
           await writeTextFile(filePath, json);
           setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'} to ${filePath}.`);
+        } catch (writeError) {
+          console.error('Tauri write failed, trying fallback:', writeError);
+          tryFallbackDownload(json, filename, exportTasks.length);
         }
       } else {
-        try {
-          const file = new Blob([json], { type: 'application/json' });
-          const url = URL.createObjectURL(file);
-          const anchor = document.createElement('a');
-          anchor.href = url;
-          anchor.download = filename;
-          anchor.rel = 'noopener';
-          anchor.style.display = 'none';
-          document.body.appendChild(anchor);
-          anchor.click();
-          document.body.removeChild(anchor);
-          setTimeout(() => URL.revokeObjectURL(url), 10000);
-          setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'}. Check your browser's download folder.`);
-        } catch {
-          setShowFallback(json);
-          setExportMessage('Auto-download failed. Copy the JSON below and save it as a .json file.');
-        }
+        tryFallbackDownload(json, filename, exportTasks.length);
       }
     } catch (e) {
       setExportMessage('Export failed: ' + (e instanceof Error ? e.message : 'unknown error'));
       console.error('Export failed:', e);
+    }
+  };
+
+  const tryFallbackDownload = (json: string, filename: string, count: number) => {
+    try {
+      const file = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(file);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      anchor.rel = 'noopener';
+      anchor.style.display = 'none';
+      document.body.appendChild(anchor);
+      anchor.click();
+      document.body.removeChild(anchor);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
+      setExportMessage(`Exported ${count} task${count === 1 ? '' : 's'}. Check your browser's download folder.`);
+    } catch {
+      setShowFallback(json);
+      setExportMessage('Auto-download failed. Copy the JSON below and save it as a .json file.');
     }
   };
 
@@ -567,6 +579,8 @@ const Options = () => {
             )}
           </div>
         </section>
+
+        <p className="text-center text-xs text-(--text-secondary) pb-4">BoardFlow v{version}</p>
       </div>
     </div>
   );

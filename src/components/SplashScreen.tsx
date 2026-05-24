@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { ClipboardList } from 'lucide-react';
+import { version } from '../../package.json';
 
 const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
   const [fade, setFade] = useState(false);
 
   useEffect(() => {
-    // Show splash for 1.5s, then fade out
     const timer1 = setTimeout(() => setFade(true), 1500);
     const timer2 = setTimeout(() => onComplete(), 2000);
-    
+
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
@@ -23,6 +23,7 @@ const SplashScreen = ({ onComplete }: { onComplete: () => void }) => {
       <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-500 animate-pulse">
         BoardFlow
       </h1>
+      <p className="text-sm text-(--text-secondary) mt-2 font-medium">v{version}</p>
     </div>
   );
 };

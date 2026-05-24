@@ -8,8 +8,14 @@ A running log of every change, fix, and decision during development.
 
 **Focus**: Replace browser blob-download with Tauri native save dialog + fs plugin so export works on Android.
 
+### 🚀 New Features
+- **Daily goal notification** — `sendNativeNotification` fires when `completedCount` reaches the daily goal, with a congratulatory title and body. Uses existing notification infrastructure (Tauri native on mobile/desktop, Web Notification API fallback in browser).
+- **Version display** — app version shown on the splash screen (under title) and at the bottom of the Options page.
+
 ### 🐛 Bug Fixes
 - **Export broken on Android** — `Blob` + `<a download>` doesn't work in Android WebView; replaced with `@tauri-apps/plugin-dialog` (`save()`) and `@tauri-apps/plugin-fs` (`writeTextFile()`). Falls back to blob download in browser mode.
+- **Export cancelled state** — now shows "Export cancelled." message when the user dismisses the save dialog without selecting a file.
+- **Export fallback chain** — extracted `tryFallbackDownload` helper; if Tauri write fails, falls back to blob download, then to JSON textarea.
 
 ### 🧹 Changes
 - Added `tauri-plugin-dialog` and `tauri-plugin-fs` (npm + Cargo) with `dialog:allow-save` and `fs:allow-write-text-file` capabilities
