@@ -17,6 +17,7 @@ android {
     compileSdk = 36
     namespace = "com.omark.boardflow"
 
+    defaultConfig {
         applicationId = "com.omark.boardflow"
         minSdk = 24
         targetSdk = 36
@@ -36,6 +37,7 @@ android {
             }
         }
         getByName("release") {
+            manifestPlaceholders["usesCleartextTraffic"] = "false"
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
