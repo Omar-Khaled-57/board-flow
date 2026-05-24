@@ -15,10 +15,9 @@ val tauriProperties = Properties().apply {
 
 android {
     compileSdk = 36
-    namespace = "com.hp.boardflow"
-    defaultConfig {
-        manifestPlaceholders["usesCleartextTraffic"] = "false"
-        applicationId = "com.hp.boardflow"
+    namespace = "com.omark.boardflow"
+
+        applicationId = "com.omark.boardflow"
         minSdk = 24
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()

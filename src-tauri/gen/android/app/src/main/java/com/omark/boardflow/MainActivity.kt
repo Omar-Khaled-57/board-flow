@@ -1,4 +1,4 @@
-package com.hp.boardflow
+package com.omark.boardflow
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
