@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import 'mathlive';
 import { Type, Highlighter, Hash, Link, Sigma, X } from 'lucide-react';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface RichInsertEditorProps {
   onInsert: (type: string, value: string) => void;
@@ -12,17 +13,7 @@ const RichInsertEditor = ({ onInsert, onClose }: RichInsertEditorProps) => {
   const [selectedType, setSelectedType] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
+  const ref = useClickOutside<HTMLDivElement>(true, onClose);
 
   const handleSelectType = (type: string) => {
     setSelectedType(type);

@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface SortDropdownProps {
   value: string;
@@ -10,22 +11,10 @@ interface SortDropdownProps {
 const SortDropdown = ({ value, onChange, options }: SortDropdownProps) => {
   const [open, setOpen] = useState(false);
   const [highlighted, setHighlighted] = useState(-1);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const close = useCallback(() => setOpen(false), []);
+  const containerRef = useClickOutside<HTMLDivElement>(open, close);
 
   const selected = options.find(o => o.value === value);
-
-  const close = useCallback(() => setOpen(false), []);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        close();
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open, close]);
 
   useEffect(() => {
     if (open) setHighlighted(options.findIndex(o => o.value === value));

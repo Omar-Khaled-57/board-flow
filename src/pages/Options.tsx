@@ -6,6 +6,8 @@ import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
 import { Todo } from '../types';
+import PageHeader from '../components/PageHeader';
+import ToggleSwitch from '../components/ToggleSwitch';
 
 const Dropdown = <T extends string>({
   items,
@@ -82,7 +84,7 @@ const ClearStatsButton = () => {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="inline-flex items-center justify-center rounded-full border border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 px-4 py-2.5 text-sm font-semibold text-[#B91C1C] dark:text-red-400 transition-all hover:bg-[#FEE2E2]/80 dark:hover:bg-red-900/20 hover:shadow-md active:scale-95"
+            className="inline-flex items-center justify-center rounded-full border border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 px-5 py-2.5 text-sm font-semibold text-[#B91C1C] dark:text-red-400 transition-all hover:bg-[#FEE2E2]/80 dark:hover:bg-red-900/20 hover:shadow-md active:scale-95"
           >
             Clear Stats
           </button>
@@ -94,20 +96,22 @@ const ClearStatsButton = () => {
         }`}
       >
         <div className="overflow-hidden">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 pt-3 pb-1">
-            <p className="text-sm font-medium text-[#B91C1C] dark:text-red-400">This will permanently erase all statistics data.</p>
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex flex-col gap-4 p-5">
+            <p className="text-sm leading-relaxed text-[#B91C1C] dark:text-red-400">
+              <span className="font-semibold">Warning:</span> This will permanently erase all statistics data. This action cannot be undone.
+            </p>
+            <div className="flex items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => { clearStats(); setOpen(false); }}
-                className="inline-flex items-center justify-center rounded-full bg-red-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-600 active:scale-95"
+                className="inline-flex items-center justify-center rounded-full bg-red-500 px-5 py-2 text-sm font-bold text-white transition-all hover:bg-red-600 active:scale-95 shadow-sm"
               >
                 Confirm
               </button>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex items-center justify-center rounded-full border border-(--border-color) bg-(--bg-color) px-3.5 py-1.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--card-bg) active:scale-95"
+                className="inline-flex items-center justify-center rounded-full border border-(--border-color) bg-(--bg-color) px-5 py-2 text-sm font-semibold text-(--text-secondary) transition-all hover:bg-(--card-bg) active:scale-95"
               >
                 Cancel
               </button>
@@ -327,18 +331,7 @@ const Options = () => {
 
   return (
     <div className="min-h-full flex flex-col gap-6">
-      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
-        <div className="absolute top-4 start-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
-        <div className="absolute bottom-8 -end-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
-
-        <div className="z-10 relative">
-          <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-(--text-on-primary)">
-            Options
-          </h1>
-          <p className="mt-2 font-medium text-(--text-on-primary) opacity-80">Customize your experience</p>
-        </div>
-      </header>
+      <PageHeader title="Options" subtitle="Customize your experience" align="center" />
       
       <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 space-y-8">
         
@@ -399,85 +392,50 @@ const Options = () => {
           <h2 className="text-xl font-semibold mb-4 border-b border-(--border-color) pb-2">Interface</h2>
           
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Add new tasks to top</label>
-              <input 
-                title="Add new tasks to top"
-                type="checkbox" 
-                checked={settings.addToTop}
-                onChange={e => updateSettings({ addToTop: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Move completed tasks to bottom</label>
-              <input 
-                title="Move completed tasks to bottom"
-                type="checkbox" 
-                checked={settings.completedToBottom}
-                onChange={e => updateSettings({ completedToBottom: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
-              />
-            </div>
+            <ToggleSwitch
+              label="Add new tasks to top"
+              checked={settings.addToTop}
+              onChange={v => updateSettings({ addToTop: v })}
+            />
 
-            <div className="hidden landscape:flex items-center justify-between gap-4">
-              <div>
-                <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Stack composer above tasks</label>
-                <p className="text-xs text-(--text-secondary) opacity-75">Landscape only. Turn off to use the split composer/list layout.</p>
-              </div>
-              <input
-                title="Stack composer above tasks in landscape"
-                type="checkbox"
+            <ToggleSwitch
+              label="Move completed tasks to bottom"
+              checked={settings.completedToBottom}
+              onChange={v => updateSettings({ completedToBottom: v })}
+            />
+
+            <div className="hidden landscape:flex">
+              <ToggleSwitch
+                label="Stack composer above tasks"
+                sublabel="Landscape only. Turn off to use the split composer/list layout."
                 checked={settings.landscapeStackedTasks ?? true}
-                onChange={e => updateSettings({ landscapeStackedTasks: e.target.checked })}
-                className="w-6 h-6 shrink-0 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
-              />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Enable completion sound</label>
-              <input 
-                title="Enable completion sound"
-                type="checkbox" 
-                checked={settings.soundEnabled}
-                onChange={e => updateSettings({ soundEnabled: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
+                onChange={v => updateSettings({ landscapeStackedTasks: v })}
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Hide Edit in Tasks</label>
-              <input
-                title="Hide Edit in Tasks"
-                type="checkbox"
-                checked={!!settings.hideEditInTasks}
-                onChange={e => updateSettings({ hideEditInTasks: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
-              />
-            </div>
+            <ToggleSwitch
+              label="Enable completion sound"
+              checked={settings.soundEnabled}
+              onChange={v => updateSettings({ soundEnabled: v })}
+            />
 
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Hide Delete in Tasks</label>
-              <input
-                title="Hide Delete in Tasks"
-                type="checkbox"
-                checked={!!settings.hideDeleteInTasks}
-                onChange={e => updateSettings({ hideDeleteInTasks: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
-              />
-            </div>
+            <ToggleSwitch
+              label="Hide Edit in Tasks"
+              checked={!!settings.hideEditInTasks}
+              onChange={v => updateSettings({ hideEditInTasks: v })}
+            />
 
-            <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary) cursor-pointer select-none">Vertical action buttons</label>
-              <input
-                title="Stack edit/delete buttons vertically"
-                type="checkbox"
-                checked={!!settings.verticalActionButtons}
-                onChange={e => updateSettings({ verticalActionButtons: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
-              />
-            </div>
+            <ToggleSwitch
+              label="Hide Delete in Tasks"
+              checked={!!settings.hideDeleteInTasks}
+              onChange={v => updateSettings({ hideDeleteInTasks: v })}
+            />
+
+            <ToggleSwitch
+              label="Vertical action buttons"
+              checked={!!settings.verticalActionButtons}
+              onChange={v => updateSettings({ verticalActionButtons: v })}
+            />
           </div>
         </section>
 

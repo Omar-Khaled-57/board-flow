@@ -3,6 +3,8 @@ import { useTodoStore } from '../store/useTodoStore';
 import { format, startOfWeek, addDays, startOfMonth, endOfMonth, endOfWeek, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, CheckCircle2, Circle } from 'lucide-react';
 import clsx from 'clsx';
+import PageHeader from '../components/PageHeader';
+import EmptyState from '../components/EmptyState';
 
 const CalendarPage = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -127,19 +129,8 @@ const CalendarPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col min-aspect-4-3:flex-row min-aspect-4-3:items-center justify-between gap-6">
-        <div className="absolute top-4 start-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
-        <div className="absolute bottom-8 -end-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
-
-        <div className="z-10 relative">
-          <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-(--text-on-primary)">
-            Calendar
-          </h1>
-          <p className="mt-2 font-medium text-(--text-on-primary) opacity-80">Schedule and due dates</p>
-        </div>
-
-        <div className="flex items-center justify-between w-full min-aspect-4-3:w-auto min-aspect-4-3:min-w-75 bg-(--text-on-primary)/10 backdrop-blur-sm border border-(--text-on-primary)/20 text-(--text-on-primary) p-2 rounded-3xl shadow-sm z-10 relative">
+      <PageHeader title="Calendar" subtitle="Schedule and due dates">
+        <div className="flex items-center justify-between w-full bg-(--text-on-primary)/10 backdrop-blur-sm border border-(--text-on-primary)/20 text-(--text-on-primary) p-2 rounded-3xl shadow-sm z-10">
           <button onClick={prevMonth} className="p-2 hover:bg-(--text-on-primary)/20 rounded-2xl transition-all" aria-label="Previous month">
             <ChevronLeft size={20} />
           </button>
@@ -150,20 +141,21 @@ const CalendarPage = () => {
             <ChevronRight size={20} />
           </button>
         </div>
-      </header>
+      </PageHeader>
 
       <div className="flex-1 flex flex-col gap-4">
         <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 overflow-y-auto">
           {!hasScheduledTasks ? (
-            <div className="h-full flex flex-col items-center justify-center text-center text-(--text-secondary) py-12">
-               <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                 <CalendarIcon size={40} className="text-primary" />
-               </div>
-               <h2 className="text-2xl font-bold text-(--text-primary) mb-2">No Scheduled Tasks</h2>
-               <p className="max-w-md text-sm">
-                 <strong className="text-primary">Tasks</strong> with <strong className="text-primary">dates</strong> or <strong className="text-primary">times</strong> will appear here. Try adding a due date to a task to see it on the <strong className="text-primary text-base">calendar.</strong>
-               </p>
-            </div>
+            <EmptyState
+              icon={CalendarIcon}
+              title="No Scheduled Tasks"
+              iconSize={40}
+              description={
+                <p className="max-w-md text-sm">
+                  <strong className="text-primary">Tasks</strong> with <strong className="text-primary">dates</strong> or <strong className="text-primary">times</strong> will appear here. Try adding a due date to a task to see it on the calendar.
+                </p>
+              }
+            />
           ) : (
             <>
               {renderDays()}

@@ -1,6 +1,8 @@
 import { Flame, Target, Trophy, TrendingUp } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { useStatsStore } from '../store/useStatsStore';
+import PageHeader from '../components/PageHeader';
+import EmptyState from '../components/EmptyState';
 
 const StatsPage = () => {
   const stats = useStatsStore();
@@ -35,18 +37,16 @@ const StatsPage = () => {
     return (
       <div className="h-full flex flex-col items-center justify-center p-8">
         <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 flex-1 flex items-center justify-center max-w-lg w-full">
-          <div className="flex flex-col items-center justify-center py-16 text-center text-(--text-primary) opacity-80 dark:opacity-100">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <TrendingUp size={40} className="text-primary" />
-            </div>
-            <h3 className="text-2xl font-bold text-(--text-primary) mb-3">No Stats Yet</h3>
-            <div className="mx-auto flex max-w-sm flex-col items-center gap-2.5 text-center text-sm leading-6 text-(--text-primary) dark:opacity-85">
+          <EmptyState
+            icon={TrendingUp}
+            title="No Stats Yet"
+            description={
               <p>
-                Your insights will appear here once you start completing tasks. 
+                Your insights will appear here once you start completing tasks.
                 Head over to the <strong className="text-primary">Tasks page</strong> and crush your first goal!
               </p>
-            </div>
-          </div>
+            }
+          />
         </div>
       </div>
     );
@@ -54,19 +54,7 @@ const StatsPage = () => {
 
   return (
     <div className="h-full flex flex-col gap-6">
-      <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
-        {/* Decorative elements */}
-        <div className="absolute top-4 start-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
-        <div className="absolute bottom-8 -end-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
-
-        <div className="z-10 relative">
-          <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-(--text-on-primary)">
-            Statistics
-          </h1>
-          <p className="mt-2 font-medium text-(--text-on-primary) opacity-80">Track your productivity and crush goals.</p>
-        </div>
-      </header>
+      <PageHeader title="Statistics" subtitle="Track your productivity and crush goals." align="center" />
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Progress Ring */}

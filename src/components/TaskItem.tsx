@@ -8,6 +8,7 @@ import { useStatsStore } from '../store/useStatsStore';
 import { formatTaskDate, formatTaskTime } from '../utils/dateFormat';
 import { playCompleteSound } from '../utils/audio';
 import { parseTaskInput } from '../utils/nlp';
+import { DateBadge, TimeBadge, PriorityBadge, TagBadge } from './Badge';
 
 interface TaskItemProps {
   task: Todo;
@@ -252,40 +253,10 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
             "flex flex-wrap items-center gap-3 mt-2 text-xs transition-all duration-500",
             (task.completed || isCompleting) && "opacity-60"
           )}>
-             {task.dueDate && (
-              <div className={clsx(
-                "flex items-center gap-1 px-2 py-1 rounded-md font-semibold border border-transparent",
-                task.dueDate < Date.now() && !task.completed
-                  ? "badge-danger dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22"
-                  : "badge-info dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22"
-              )}>
-                <Calendar size={12} />
-                <span>{formatTaskDate(task.dueDate)}</span>
-              </div>
-            )}
-            {formatTaskTime(task.dueDate) && (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-md font-semibold border border-transparent badge-info dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22">
-                <Clock size={12} className="text-primary" />
-                <span>{formatTaskTime(task.dueDate)}</span>
-              </div>
-            )}
-            {task.priority !== 'medium' && (
-              <div className={clsx(
-                "flex items-center gap-1 px-2 py-1 rounded-md capitalize font-semibold border border-transparent",
-                task.priority === 'high'
-                  ? "badge-danger dark:bg-[#EF5350]/12 dark:text-[#EF5350] dark:border-[#EF5350]/22"
-                  : "badge-success dark:bg-[#66BB6A]/12 dark:text-[#66BB6A] dark:border-[#66BB6A]/22"
-              )}>
-                <Flag size={12} />
-                <span>{task.priority}</span>
-              </div>
-            )}
-            {task.tags.map(t => (
-              <div key={t} className="flex items-center gap-1 text-primary tag-pill px-2 py-1 rounded-md max-w-[160px]">
-                <TagIcon size={12} className="shrink-0" />
-                <span className={/[-_]/.test(t) ? 'min-w-0 [overflow-wrap:anywhere]' : 'truncate'}>{t}</span>
-              </div>
-            ))}
+              {task.dueDate && <DateBadge date={task.dueDate} overdue={task.dueDate < Date.now() && !task.completed} />}
+             {<TimeBadge date={task.dueDate} />}
+             {task.priority !== 'medium' && <PriorityBadge priority={task.priority} />}
+             {task.tags.map(t => <TagBadge key={t} tag={t} />)}
           </div>
         </div>
 

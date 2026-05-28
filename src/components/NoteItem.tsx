@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, Tag as TagIcon, Trash2, Edit2, Flag, GripVertical } from 'lucide-react';
+import { Trash2, Edit2, GripVertical } from 'lucide-react';
 import { Note } from '../types';
 import { useNotesStore } from '../store/useNotesStore';
-import { formatTaskDate, formatTaskTime } from '../utils/dateFormat';
+import { DateBadge, MetaDate, PriorityBadge, TagBadge } from './Badge';
 
 interface NoteItemProps {
   note: Note;
@@ -14,18 +14,12 @@ interface NoteItemProps {
 const NoteItem = ({ note, isDragging, onPointerDown }: NoteItemProps) => {
   const deleteNote = useNotesStore(state => state.deleteNote);
   const navigate = useNavigate();
-  const [showActions] = useState(false);
 
   const preview = useMemo(() => {
     const text = note.content.replace(/[#$*=`\[\]_~>]/g, '').trim();
     if (text.length <= 120) return text;
     return text.slice(0, 120).trimEnd() + '...';
   }, [note.content]);
-
-  const createdAtStr = useMemo(() => formatTaskDate(note.createdAt), [note.createdAt]);
-  const createdTimeStr = useMemo(() => formatTaskTime(note.createdAt), [note.createdAt]);
-  const updatedAtStr = useMemo(() => formatTaskDate(note.updatedAt), [note.updatedAt]);
-  const updatedTimeStr = useMemo(() => formatTaskTime(note.updatedAt), [note.updatedAt]);
 
   const handleDelete = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -52,7 +46,6 @@ const NoteItem = ({ note, isDragging, onPointerDown }: NoteItemProps) => {
           : 'border-(--border-color) hover:shadow-md'
       }`}
     >
-      {/* Section 1: Grip + Title + metadata (left) | Actions (right) */}
       <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
         <div className="flex items-start gap-2 min-w-0 flex-1">
           <button
@@ -69,22 +62,15 @@ const NoteItem = ({ note, isDragging, onPointerDown }: NoteItemProps) => {
             {note.title || <span className="text-(--text-secondary) opacity-50">Untitled</span>}
           </h3>
           <div className="flex items-center gap-x-3 gap-y-1 mt-1.5 min-w-0 overflow-hidden">
-            <span className="flex items-center gap-1 text-[11px] text-(--text-secondary) opacity-60 shrink-0 whitespace-nowrap">
-              <Calendar size={11} />
-              {createdAtStr}
-            </span>
-            <span className="flex items-center gap-1 text-[11px] text-(--text-secondary) opacity-60 shrink-0 whitespace-nowrap">
-              <Clock size={11} />
-              {createdTimeStr}
-            </span>
+            <MetaDate date={note.createdAt} />
             <span className="text-[11px] text-(--text-secondary) opacity-40 shrink-0">·</span>
-            <span className="flex items-center gap-1 text-[11px] text-(--text-secondary) opacity-60 truncate">
-              edited {updatedAtStr} {updatedTimeStr}
+            <span className="text-[11px] text-(--text-secondary) opacity-60 truncate">
+              edited <MetaDate date={note.updatedAt} />
             </span>
           </div>
         </div>
         </div>
-        <div className={`flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ${showActions ? 'opacity-100' : ''}`}>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
           <button
             type="button"
             onClick={handleEdit}
@@ -106,10 +92,8 @@ const NoteItem = ({ note, isDragging, onPointerDown }: NoteItemProps) => {
         </div>
       </div>
 
-      {/* Divider */}
       <div className="mx-5 h-px bg-primary/20" />
 
-      {/* Section 2: Content preview */}
       {preview && (
         <div className="px-5 py-3">
           <p className="text-sm text-(--text-secondary) truncate">
@@ -118,45 +102,15 @@ const NoteItem = ({ note, isDragging, onPointerDown }: NoteItemProps) => {
         </div>
       )}
 
-      {/* Divider */}
       {(note.tags.length > 0 || note.dueDate || (note.priority && note.priority !== 'medium')) && (
         <div className="mx-5 h-px bg-primary/20" />
       )}
 
-      {/* Section 3: Footer (Date, Time, Priority, Tags) */}
       {(note.tags.length > 0 || note.dueDate || (note.priority && note.priority !== 'medium')) && (
         <div className="px-5 py-3 flex items-center gap-2 overflow-x-auto min-w-0 hide-scrollbar">
-          {note.dueDate && (
-            <span className="flex items-center gap-1 text-[11px] font-semibold text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md shrink-0">
-              <Calendar size={12} />
-              {formatTaskDate(note.dueDate)}
-            </span>
-          )}
-          {note.dueDate && formatTaskTime(note.dueDate) && (
-            <span className="flex items-center gap-1 text-[11px] font-semibold text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md shrink-0">
-              <Clock size={12} />
-              {formatTaskTime(note.dueDate)}
-            </span>
-          )}
-          {note.priority && note.priority !== 'medium' && (
-            <span className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-md capitalize font-semibold border border-transparent shrink-0 ${
-              note.priority === 'high'
-                ? 'badge-danger dark:bg-[#EF5350]/12 dark:text-[#EF5350] dark:border-[#EF5350]/22'
-                : 'badge-success dark:bg-[#66BB6A]/12 dark:text-[#66BB6A] dark:border-[#66BB6A]/22'
-            }`}>
-              <Flag size={12} />
-              {note.priority}
-            </span>
-          )}
-          {note.tags.map(tag => (
-            <span
-              key={tag}
-              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md tag-pill text-primary shrink-0"
-            >
-              <TagIcon size={12} />
-              {tag}
-            </span>
-          ))}
+          {note.dueDate && <DateBadge date={note.dueDate} />}
+          {note.priority && note.priority !== 'medium' && <PriorityBadge priority={note.priority} />}
+          {note.tags.map(tag => <TagBadge key={tag} tag={tag} />)}
         </div>
       )}
     </div>

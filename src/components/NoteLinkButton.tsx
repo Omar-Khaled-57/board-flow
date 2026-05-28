@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, Unlink } from 'lucide-react';
 import { useNotesStore } from '../store/useNotesStore';
 import { useTodoStore } from '../store/useTodoStore';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface NoteLinkButtonProps {
   noteId: string;
@@ -12,16 +13,7 @@ const NoteLinkButton = ({ noteId }: NoteLinkButtonProps) => {
   const updateNote = useNotesStore(state => state.updateNote);
   const todos = useTodoStore(state => state.todos);
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  const ref = useClickOutside<HTMLDivElement>(open, () => setOpen(false));
 
   if (!note) return null;
 

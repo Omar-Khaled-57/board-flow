@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { Paperclip, X, Image, FileText, Video } from 'lucide-react';
 import { useNotesStore } from '../store/useNotesStore';
 import { NoteAttachment } from '../types';
+import { useClickOutside } from '../hooks/useClickOutside';
 
 interface NoteClipButtonProps {
   noteId: string;
@@ -11,7 +12,7 @@ const NoteClipButton = ({ noteId }: NoteClipButtonProps) => {
   const note = useNotesStore(state => state.notes.find(n => n.id === noteId));
   const updateNote = useNotesStore(state => state.updateNote);
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const ref = useClickOutside<HTMLDivElement>(open, () => setOpen(false));
 
   if (!note) return null;
 

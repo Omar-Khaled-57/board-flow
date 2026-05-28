@@ -2,15 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Todo, Settings, Tag, TaskList } from '../types';
 import { getStorageAdapter } from './storage';
+import { generateId } from '../utils/id';
 
-interface TodoState {
+interface TodoStateShallow {
   todos: Todo[];
-  /** Tag library (all known tags, not per-task tags) */
   tags: Tag[];
   lists: TaskList[];
   settings: Settings;
-
-  /** Undo/Redo stacks — each entry is a full snapshot of `todos` */
   past: Todo[][];
   future: Todo[][];
 
@@ -19,7 +17,6 @@ interface TodoState {
   deleteTodo: (id: string) => void;
   deleteCompletedTodos: () => void;
   toggleTodo: (id: string) => void;
-  /** Replace the full todos array with a custom ordering (used by drag-and-drop) */
   setTodoOrder: (orderedIds: string[]) => void;
 
   addTag: (tag: Omit<Tag, 'id'>) => void;
@@ -32,8 +29,9 @@ interface TodoState {
   redo: () => void;
 }
 
+export type TodoState = TodoStateShallow;
+
 const HISTORY_LIMIT = 50;
-const ID_LENGTH = 7;
 
 const defaultSettings: Settings = {
   theme: 'system',
@@ -51,8 +49,6 @@ const defaultSettings: Settings = {
   sortField: 'date-added',
   sortDirection: 'desc',
 };
-
-const generateId = () => Math.random().toString(36).substring(2, 2 + ID_LENGTH);
 
 export const useTodoStore = create<TodoState>()(
   persist(
