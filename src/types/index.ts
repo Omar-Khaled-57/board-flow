@@ -34,6 +34,9 @@ export interface Todo {
   createdAt: number;
 }
 
+export type SortField = 'name' | 'date-added' | 'due-date' | 'priority' | 'tags';
+export type SortDirection = 'asc' | 'desc';
+
 export interface Settings {
   theme: 'light' | 'dark' | 'system';
   accentColor: string;
@@ -45,6 +48,9 @@ export interface Settings {
   hideEditInTasks: boolean;
   hideDeleteInTasks: boolean;
   verticalActionButtons: boolean;
+  lastActiveListId: string;
+  sortField: SortField;
+  sortDirection: SortDirection;
 }
 
 export interface DailyGoal {

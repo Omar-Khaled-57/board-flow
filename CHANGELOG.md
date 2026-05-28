@@ -4,6 +4,45 @@ A running log of every change, fix, and decision during development.
 
 ---
 
+## v0.6.0 — Custom Dropdowns, Calendar Picker, RTL Support & More
+
+**Focus**: Custom dropdown menus, in-flow calendar picker, tag autocomplete from todos, logical CSS properties for RTL/LTR compatibility.
+
+### 🚀 New Features
+- **Sorting options** — new sort controls on the Home page header: sort by Name, Date Added, Due Date, Priority, or Tags, with ascending/descending toggle
+- **Task List dropdown in edit mode** — change a task's list assignment directly in the inline editor via a custom dropdown menu with CSS transitions
+- **Time input in edit mode** — native `<input type="time">` picker alongside the date input, merges time into the dueDate timestamp
+- **Tag suggestions** — when typing `#`, the app suggests tags from the union of the tag library + tags actually used in todos, with keyboard navigation (arrows, enter, escape); available in both TaskItem and TaskEditor
+- **Calendar picker** — in-flow mini calendar grid (month/year nav, day grid) that expands the task item to push subsequent items down, replacing quick-select date buttons
+- **Arabic NLP support** — recognizes Arabic date/time terms: بكرة/بكره (tomorrow), الصبح/الصباح (morning), المساء (evening), بليل (night)
+- **Proactive notification permissions** — requests notification permissions on first app launch instead of waiting until the first scheduled notification
+- **Persistent list selection** — the app remembers the last selected task list across sessions
+
+### ✨ UI Improvements
+- **Lists panel overhaul** — "All Tasks" and "No List" tabs are now always visible in the lists panel with consistent styling
+- **Independent tag filter** — clicking a tag to filter now uses a dedicated tag filter state, separate from the search bar, so you can search for text within filtered tags
+- **Custom SortDropdown** — reusable custom select component replacing native `<select>` for sort field; opacity/scale CSS transitions, keyboard nav, outside-click close
+- **List dropdown stylized** — custom button + dropdown replacing native `<select>` in edit mode; same transition pattern as SortDropdown
+- **Sort controls position** — moved sort field and direction toggle from header into inline with the task list title, styled as bold glowing primary text with `drop-shadow-[0_0_4px_var(--color-primary)]`
+- **Clock icon (view mode)** — clock icon now uses primary color via `text-primary` class
+- **Pulse animation** — restored to original 3s speed; idle delay shortened by moving fade-out completion earlier in keyframes (inner 88%, outer 70%)
+- **Navigation icon updated** — replaced Home icon with ClipboardList for the Tasks nav item
+- **RTL/LTR logical CSS properties** — migrated all directional CSS to logical equivalents across the entire codebase: `left`/`right` → `start`/`end`, `border-l`/`border-r` → `border-s`/`border-e`, `rounded-l`/`rounded-r` → `rounded-s`/`rounded-e`, `pl-`/`pr-` → `ps-`/`pe-`, `ml-`/`mr-` → `ms-`/`me-`, `text-left` → `text-start`, `origin-top-left`/`origin-top-right` → `origin-inline-start`/`origin-inline-end`
+- **Sort UI** — compact sort field dropdown and direction toggle added to the home page header
+- **Code comments** — added descriptive section comments to Layout.tsx, Home.tsx, TaskEditor.tsx, and index.css
+
+### 🐛 Bug Fixes
+- **Android export** — fixed `__TAURI_IPC__` detection for reliable platform check; on Android, if the save dialog fails, shows a clear error message instead of attempting an unsupported blob download
+- **Hyphen NLP handling** — removed `-` from flexible date separator regex so hyphens in task titles are preserved rather than treated as date delimiters
+- **Duplicate TodoList blocks** — consolidated two conditional `TodoList` render blocks that caused layout duplication
+- **Mobile navbar full width** — reverted `inset-inline-0` to physical `left-0 right-0` on mobile bottom nav for Android WebView compatibility; same fix applied to indicator bar (`inset-inline-0` → `inset-x-0`) and its positioning/transition properties
+
+### 🧹 Changes
+- Added `lastActiveListId`, `sortField`, `sortDirection` to `Settings` type with defaults
+- Created `SortDropdown.tsx` as reusable custom select component
+- Created `dev/tstl8r.md` test-later checklist
+- Version bumped to `0.6.0`
+
 ## v0.5.2 — Android Export Fix
 
 **Focus**: Replace browser blob-download with Tauri native save dialog + fs plugin so export works on Android.

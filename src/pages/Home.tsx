@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import TaskEditor from '../components/TaskEditor';
 import TodoList from '../components/TodoList';
-import { FolderKanban, Search, Tag, Plus, Trash2, Edit2, CheckCheck } from 'lucide-react';
+import SortDropdown from '../components/SortDropdown';
+import { FolderKanban, Search, Tag, Plus, Trash2, Edit2, CheckCheck, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTodoStore } from '../store/useTodoStore';
+import { SortField } from '../types';
 
 type TaskListTab = {
   id: string;
@@ -19,13 +21,15 @@ const Home = () => {
   const renameList = useTodoStore(state => state.renameList);
   const deleteCompletedTodos = useTodoStore(state => state.deleteCompletedTodos);
   const settings = useTodoStore(state => state.settings);
+  const updateSettings = useTodoStore(state => state.updateSettings);
 
   const allTags = useMemo(() => Array.from(new Set(todos.flatMap(t => t.tags))), [todos]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTagFilter, setActiveTagFilter] = useState('');
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [showTaskTabs, setShowTaskTabs] = useState(false);
   const [showAllTags, setShowAllTags] = useState(false);
-  const [activeTaskListId, setActiveTaskListId] = useState('all');
+  const [activeTaskListId, setActiveTaskListId] = useState<string>(settings.lastActiveListId || 'all');
   const [editingListId, setEditingListId] = useState<string | null>(null);
   const [editingListName, setEditingListName] = useState('');
   const [newListName, setNewListName] = useState('');
@@ -40,16 +44,14 @@ const Home = () => {
     }));
     const unlistedCount = todos.filter(todo => !todo.listId).length;
     return [
-      { id: 'all', label: 'All', count: todos.length },
+      { id: 'all', label: 'All Tasks', count: todos.length },
       ...listTabs,
-      ...(unlistedCount > 0
-        ? [{ id: 'unlisted' as const, label: 'No List', count: unlistedCount, showUnlistedOnly: true as const }]
-        : []),
+      { id: 'unlisted', label: 'No List', count: unlistedCount, showUnlistedOnly: true },
     ];
   }, [lists, todos]);
   
   const visibleTaskListTabs = useMemo(
-    () => taskListTabs.filter(tab => tab.id !== 'all'),
+    () => taskListTabs,
     [taskListTabs]
   );
 
@@ -69,6 +71,10 @@ const Home = () => {
       setActiveTaskListId('all');
     }
   }, [activeTaskListId, taskListTabs]);
+
+  useEffect(() => {
+    updateSettings({ lastActiveListId: activeTaskListId });
+  }, [activeTaskListId]);
 
   const handleAddList = () => {
     if (newListName.trim()) {
@@ -95,9 +101,10 @@ const Home = () => {
     <div className="h-full flex flex-col gap-6">
       <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-start gap-6">
         {/* Decorative elements */}
-        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
-        <div className="absolute bottom-8 -right-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
+        {/* Decorative circles — positioned with logical start/end */}
+        <div className="absolute top-4 start-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
+        <div className="absolute bottom-8 -end-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
 
         <div className="z-10 relative max-w-xl">
           <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-(--text-on-primary)">
@@ -123,22 +130,22 @@ const Home = () => {
             </button>
 
             <div className="relative min-w-0">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-on-primary) opacity-60" size={16} />
+              <Search className="absolute start-3 top-1/2 -translate-y-1/2 text-(--text-on-primary) opacity-60" size={16} />
               <input 
                 type="text" 
                 placeholder="Search tasks..." 
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="min-h-11 pl-9 pr-4 py-2.5 rounded-full bg-[rgba(var(--text-on-primary-rgb),0.1)] border border-[rgba(var(--text-on-primary-rgb),0.2)] text-(--text-on-primary) placeholder-[rgba(var(--text-on-primary-rgb),0.6)] text-sm focus:border-(--text-on-primary) focus:ring-2 focus:ring-[rgba(var(--text-on-primary-rgb),0.3)] outline-none w-full transition-all shadow-sm backdrop-blur-sm"
+                className="min-h-11 ps-9 pe-4 py-2.5 rounded-full bg-[rgba(var(--text-on-primary-rgb),0.1)] border border-[rgba(var(--text-on-primary-rgb),0.2)] text-(--text-on-primary) placeholder-[rgba(var(--text-on-primary-rgb),0.6)] text-sm focus:border-(--text-on-primary) focus:ring-2 focus:ring-[rgba(var(--text-on-primary-rgb),0.3)] outline-none w-full transition-all shadow-sm backdrop-blur-sm"
                 aria-label="Search tasks"
               />
             </div>
             
             <div className="relative grid min-h-11 grid-cols-3 items-center gap-1 overflow-hidden bg-(--card-bg)/95 backdrop-blur-sm border border-[rgba(var(--text-on-primary-rgb),0.24)] rounded-full p-1 w-full shadow-sm sm:col-span-2 lg:col-span-1">
               <div
-                className="absolute top-1 bottom-1 rounded-full bg-primary shadow-sm transition-[left] duration-300 ease-out"
+                className="absolute top-1 bottom-1 rounded-full bg-primary shadow-sm transition-[inset-inline-start] duration-300 ease-out"
                 style={{
-                  left: `calc(0.25rem + ${filterIndex} * ((100% - 1rem) / 3 + 0.25rem))`,
+                  insetInlineStart: `calc(0.25rem + ${filterIndex} * ((100% - 1rem) / 3 + 0.25rem))`,
                   width: 'calc((100% - 1rem) / 3)',
                 }}
                 aria-hidden="true"
@@ -167,8 +174,8 @@ const Home = () => {
                   {allTags.slice(0, 5).map(tag => (
                     <button 
                       key={tag}
-                      onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${searchQuery === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
+                      onClick={() => setActiveTagFilter(activeTagFilter === tag ? '' : tag)}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${activeTagFilter === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
                     >
                       {tag}
                     </button>
@@ -196,8 +203,8 @@ const Home = () => {
                   {allTags.slice(5).map(tag => (
                     <button 
                       key={tag}
-                      onClick={() => setSearchQuery(searchQuery === tag ? '' : tag)}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${searchQuery === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
+                      onClick={() => setActiveTagFilter(activeTagFilter === tag ? '' : tag)}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-full transition-all border ${activeTagFilter === tag ? 'bg-(--text-on-primary) text-primary border-(--text-on-primary) shadow-sm scale-95' : 'bg-[rgba(var(--text-on-primary-rgb),0.1)] text-(--text-on-primary) border-[rgba(var(--text-on-primary-rgb),0.2)] hover:border-(--text-on-primary) hover:bg-[rgba(var(--text-on-primary-rgb),0.2)]'}`}
                     >
                       {tag}
                     </button>
@@ -241,11 +248,7 @@ const Home = () => {
               return (
                 <div
                   key={tab.id}
-                  className={`group flex max-w-full items-center gap-1 rounded-full border backdrop-blur-md transition-all duration-300 ease-out ${
-                    isListTab
-                      ? 'border-(--border-color) bg-(--bg-color)/70 px-1.5 py-1 shadow-sm'
-                      : 'border-transparent bg-transparent'
-                  }`}
+                  className={`group flex max-w-full items-center gap-1 rounded-full border backdrop-blur-md transition-all duration-300 ease-out border-(--border-color) bg-(--bg-color)/70 px-1.5 py-1 shadow-sm`}
                 >
                   <button
                     type="button"
@@ -268,10 +271,10 @@ const Home = () => {
                   
                   {isListTab && listId && (
                     <div
-                      className={`origin-left flex shrink-0 gap-1 overflow-hidden transition-[max-width,opacity,transform,margin] duration-300 ease-out ${
+                      className={`origin-inline-start flex shrink-0 gap-1 overflow-hidden transition-[max-width,opacity,transform,margin] duration-300 ease-out ${
                         isActiveList
-                          ? 'ml-0 max-w-20 opacity-100 scale-100 pointer-events-auto'
-                          : '-ml-1 max-w-0 opacity-0 scale-90 pointer-events-none'
+                          ? 'ms-0 max-w-20 opacity-100 scale-100 pointer-events-auto'
+                          : '-ms-1 max-w-0 opacity-0 scale-90 pointer-events-none'
                       }`}
                       aria-hidden={!isActiveList}
                     >
@@ -370,11 +373,34 @@ const Home = () => {
           <TaskEditor listId={activeListId} />
 
           <div className={`bg-(--card-bg)/70 rounded-xl shadow-sm border border-(--border-color) p-4 md:p-6 flex flex-col ${useStackedLandscapeLayout ? '' : 'lg:hidden'}`}>
-            <h2 className="text-xl font-semibold mb-4">{activeTaskList.label} Tasks</h2>
-            <div className="overflow-y-auto pl-2 pt-3 pb-3 pr-2 -ml-2 -mr-2">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h2 className="text-xl font-semibold truncate">{activeTaskList.label} Tasks</h2>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <SortDropdown
+                  value={settings.sortField}
+                  onChange={v => updateSettings({ sortField: v as SortField })}
+                  options={[
+                    { value: 'date-added', label: 'Date Added' },
+                    { value: 'name', label: 'Name' },
+                    { value: 'due-date', label: 'Due Date' },
+                    { value: 'priority', label: 'Priority' },
+                    { value: 'tags', label: 'Tags' },
+                  ]}
+                />
+                <button
+                  onClick={() => updateSettings({ sortDirection: settings.sortDirection === 'asc' ? 'desc' : 'asc' })}
+                  className="text-primary font-bold text-sm drop-shadow-[0_0_4px_var(--color-primary)] transition-all hover:opacity-80"
+                  aria-label="Toggle sort direction"
+                >
+                  {settings.sortDirection === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
+                </button>
+              </div>
+            </div>
+            <div className="overflow-y-auto ps-2 pt-3 pb-3 pe-2 -ms-2 -me-2">
               <TodoList
                 searchQuery={searchQuery}
                 filter={filter}
+                tagFilter={activeTagFilter || undefined}
                 listId={activeListId}
                 showUnlistedOnly={activeTaskListId === 'unlisted'}
               />
@@ -384,11 +410,34 @@ const Home = () => {
 
         {!useStackedLandscapeLayout && (
         <div className="hidden lg:flex flex-col bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-4 md:p-6">
-          <h2 className="text-xl font-semibold mb-4">{activeTaskList.label} Tasks</h2>
-          <div className="overflow-y-auto pl-3 pt-3 pb-3 pr-2 -mr-2">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <h2 className="text-xl font-semibold truncate">{activeTaskList.label} Tasks</h2>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <SortDropdown
+                value={settings.sortField}
+                onChange={v => updateSettings({ sortField: v as SortField })}
+                options={[
+                  { value: 'date-added', label: 'Date Added' },
+                  { value: 'name', label: 'Name' },
+                  { value: 'due-date', label: 'Due Date' },
+                  { value: 'priority', label: 'Priority' },
+                  { value: 'tags', label: 'Tags' },
+                ]}
+              />
+              <button
+                onClick={() => updateSettings({ sortDirection: settings.sortDirection === 'asc' ? 'desc' : 'asc' })}
+                className="text-primary font-bold text-sm drop-shadow-[0_0_4px_var(--color-primary)] transition-all hover:opacity-80"
+                aria-label="Toggle sort direction"
+              >
+                {settings.sortDirection === 'asc' ? <ArrowUp size={15} /> : <ArrowDown size={15} />}
+              </button>
+            </div>
+          </div>
+          <div className="overflow-y-auto ps-3 pt-3 pb-3 pe-2 -me-2">
             <TodoList
               searchQuery={searchQuery}
               filter={filter}
+              tagFilter={activeTagFilter || undefined}
               listId={activeListId}
               showUnlistedOnly={activeTaskListId === 'unlisted'}
             />

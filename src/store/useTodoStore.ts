@@ -46,6 +46,9 @@ const defaultSettings: Settings = {
   hideEditInTasks: false,
   hideDeleteInTasks: false,
   verticalActionButtons: false,
+  lastActiveListId: 'all',
+  sortField: 'date-added',
+  sortDirection: 'desc',
 };
 
 const generateId = () => Math.random().toString(36).substring(2, 2 + ID_LENGTH);

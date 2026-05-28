@@ -32,7 +32,7 @@ const Dropdown = <T extends string>({
       </button>
       {open && (
         <div
-          className="absolute z-50 left-0 right-0 top-full mt-1 animate-fade-slide-down origin-top"
+          className="absolute z-50 inset-inline-0 top-full mt-1 animate-fade-slide-down origin-top"
         >
           <div className="rounded-xl border border-(--border-color) bg-(--card-bg) py-1 shadow-lg shadow-primary/5 overflow-hidden">
             {items.map((item, i) => (
@@ -40,7 +40,7 @@ const Dropdown = <T extends string>({
                 key={item.id}
                 type="button"
                 onClick={() => { onChange(item.id); setOpen(false); }}
-                className={`w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm transition-colors hover:bg-primary/10 ${
+                className={`w-full flex items-center gap-2 px-4 py-2.5 text-start text-sm transition-colors hover:bg-primary/10 ${
                   i === 0 ? 'rounded-t-xl' : ''
                 } ${
                   i === items.length - 1 ? 'rounded-b-xl' : ''
@@ -171,7 +171,8 @@ const Options = () => {
       const json = JSON.stringify(payload, null, 2);
       const filename = `boardflow-tasks-${listId === 'all' ? 'all' : listId}.json`;
 
-      const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
+      const isTauri = typeof window !== 'undefined' && typeof (window as any).__TAURI_IPC__ !== 'undefined';
+      const isAndroid = isTauri && navigator.userAgent.toLowerCase().includes('android');
 
       if (isTauri) {
         const filePath = await save({
@@ -186,8 +187,12 @@ const Options = () => {
           await writeTextFile(filePath, json);
           setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'} to ${filePath}.`);
         } catch (writeError) {
-          console.error('Tauri write failed, trying fallback:', writeError);
-          tryFallbackDownload(json, filename, exportTasks.length);
+          console.error('Tauri write failed:', writeError);
+          if (isAndroid) {
+            setExportMessage('Export failed. The save dialog may not be supported on your device. Try using the desktop version.');
+          } else {
+            tryFallbackDownload(json, filename, exportTasks.length);
+          }
         }
       } else {
         tryFallbackDownload(json, filename, exportTasks.length);
@@ -325,9 +330,9 @@ const Options = () => {
   return (
     <div className="min-h-full flex flex-col gap-6">
       <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
-        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
-        <div className="absolute bottom-8 -right-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
+        <div className="absolute top-4 start-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
+        <div className="absolute bottom-8 -end-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
 
         <div className="z-10 relative">
           <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-(--text-on-primary)">
@@ -403,7 +408,7 @@ const Options = () => {
                 type="checkbox" 
                 checked={settings.addToTop}
                 onChange={e => updateSettings({ addToTop: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
             
@@ -414,7 +419,7 @@ const Options = () => {
                 type="checkbox" 
                 checked={settings.completedToBottom}
                 onChange={e => updateSettings({ completedToBottom: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
 
@@ -428,7 +433,7 @@ const Options = () => {
                 type="checkbox"
                 checked={settings.landscapeStackedTasks ?? true}
                 onChange={e => updateSettings({ landscapeStackedTasks: e.target.checked })}
-                className="w-6 h-6 shrink-0 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+                className="w-6 h-6 shrink-0 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
             
@@ -439,7 +444,7 @@ const Options = () => {
                 type="checkbox" 
                 checked={settings.soundEnabled}
                 onChange={e => updateSettings({ soundEnabled: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
 
@@ -450,7 +455,7 @@ const Options = () => {
                 type="checkbox"
                 checked={!!settings.hideEditInTasks}
                 onChange={e => updateSettings({ hideEditInTasks: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
 
@@ -461,7 +466,7 @@ const Options = () => {
                 type="checkbox"
                 checked={!!settings.hideDeleteInTasks}
                 onChange={e => updateSettings({ hideDeleteInTasks: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
 
@@ -472,7 +477,7 @@ const Options = () => {
                 type="checkbox"
                 checked={!!settings.verticalActionButtons}
                 onChange={e => updateSettings({ verticalActionButtons: e.target.checked })}
-                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:left-2 after:top-1 after:w-1.5 after:h-3 after:border-r-2 after:border-b-2 after:border-white after:rotate-45"
+                className="w-6 h-6 rounded-lg appearance-none bg-primary/10 border border-primary/20 checked:bg-primary checked:border-primary transition-all cursor-pointer relative shadow-inner after:content-[''] after:absolute after:hidden checked:after:block after:start-2 after:top-1 after:w-1.5 after:h-3 after:border-e-2 after:border-b-2 after:border-white after:rotate-45"
               />
             </div>
           </div>

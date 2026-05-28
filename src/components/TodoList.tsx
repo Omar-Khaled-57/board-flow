@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { createPortal } from 'react-dom';
 import { useTodoStore } from '../store/useTodoStore';
 import TaskItem from './TaskItem';
-import { Todo } from '../types';
+import { Todo, SortField, SortDirection } from '../types';
 import { Sparkles, Search, GripVertical } from 'lucide-react';
 
 interface TodoListProps {
@@ -17,6 +17,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
   const todos = useTodoStore(state => state.todos);
   const settings = useTodoStore(state => state.settings);
   const setTodoOrder = useTodoStore(state => state.setTodoOrder);
+
 
   const [draggedId, setDraggedId] = useState<string | null>(null);
   const [dropY, setDropY] = useState<number | null>(null);
@@ -38,13 +39,45 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
     return true;
   }), [todos, listId, tagFilter, showUnlistedOnly, searchQuery, filter]);
 
-  const sortedTodos = useMemo(() => [...filteredTodos].sort((a, b) => {
-    if (settings.completedToBottom) {
-      if (a.completed && !b.completed) return 1;
-      if (!a.completed && b.completed) return -1;
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+
+  const compareField = (a: Todo, b: Todo, field: SortField, dir: SortDirection): number => {
+    const multiplier = dir === 'asc' ? 1 : -1;
+    switch (field) {
+      case 'name':
+        return multiplier * a.title.localeCompare(b.title);
+      case 'date-added':
+        return multiplier * (a.createdAt - b.createdAt);
+      case 'due-date': {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return multiplier * (a.dueDate - b.dueDate);
+      }
+      case 'priority':
+        return multiplier * ((priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1));
+      case 'tags': {
+        const aTag = a.tags[0] || '';
+        const bTag = b.tags[0] || '';
+        return multiplier * aTag.localeCompare(bTag);
+      }
+      default:
+        return 0;
     }
-    return 0;
-  }), [filteredTodos, settings.completedToBottom]);
+  };
+
+  const sortedTodos = useMemo(() => {
+    const sorted = [...filteredTodos];
+    sorted.sort((a, b) => compareField(a, b, settings.sortField, settings.sortDirection));
+    if (settings.completedToBottom) {
+      sorted.sort((a, b) => {
+        if (a.completed && !b.completed) return 1;
+        if (!a.completed && b.completed) return -1;
+        return 0;
+      });
+    }
+    return sorted;
+  }, [filteredTodos, settings.completedToBottom, settings.sortField, settings.sortDirection]);
 
   // ── FLIP animation for completedToBottom reordering ──
   const prevPositionsRef = useRef<Map<string, DOMRect>>(new Map());
@@ -298,7 +331,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
       {/* Absolute-positioned drop indicator — no layout shift */}
       {dropY !== null && (
         <div
-          className="absolute left-2 right-2 z-20 pointer-events-none"
+          className="absolute start-2 end-2 z-20 pointer-events-none"
           style={{ top: dropY }}
         >
           <div className="flex items-center gap-2">
@@ -313,7 +346,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
       {ghostPos && ghostTaskRef.current && createPortal(
         <div
           className="fixed z-50 pointer-events-none"
-          style={{ left: ghostPos.x - 8, top: ghostPos.y - 8 }}
+          style={{ insetInlineStart: ghostPos.x - 8, top: ghostPos.y - 8 }}
           aria-hidden="true"
         >
           <div className="flex items-start gap-3 p-3 rounded-xl border border-primary/40 bg-(--card-bg)/90 backdrop-blur-sm shadow-xl opacity-85 max-w-65">

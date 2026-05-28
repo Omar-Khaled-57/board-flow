@@ -50,9 +50,9 @@ const StatsPage = () => {
     <div className="h-full flex flex-col gap-6">
       <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col items-center justify-center text-center">
         {/* Decorative elements */}
-        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
-        <div className="absolute bottom-8 -right-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
+        <div className="absolute top-4 start-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
+        <div className="absolute bottom-8 -end-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
 
         <div className="z-10 relative">
           <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-(--text-on-primary)">
@@ -136,7 +136,7 @@ const StatsPage = () => {
                   className="w-full bg-primary rounded-t-md transition-all duration-1000 ease-out relative group-hover:brightness-110" 
                   style={{ height: `${data.percent}%` }}
                 >
-                  <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-(--card-bg) border border-(--border-color) px-2 py-0.5 rounded shadow-sm text-(--text-primary)">
+                  <span className="absolute -top-7 start-1/2 -translate-x-1/2 text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity bg-(--card-bg) border border-(--border-color) px-2 py-0.5 rounded shadow-sm text-(--text-primary)">
                     {data.completed}
                   </span>
                 </div>

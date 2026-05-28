@@ -75,7 +75,7 @@ const CalendarPage = () => {
         days.push(
           <div
             className={clsx(
-              "min-h-25 p-2 border-r border-b border-(--border-color) transition-all",
+              "min-h-25 p-2 border-e border-b border-(--border-color) transition-all",
               !isSameMonth(day, monthStart) ? "bg-gray-50/50 dark:bg-gray-800/10 text-gray-400" : "bg-(--card-bg) text-(--text-primary) cursor-pointer",
               isSelected
                 ? "ring-2 ring-primary ring-inset bg-primary-light dark:bg-primary/10"
@@ -106,7 +106,7 @@ const CalendarPage = () => {
                 </div>
               ))}
               {dayTodos.length > 3 && (
-                <div className="text-xs text-(--text-secondary) font-medium pl-1">
+                <div className="text-xs text-(--text-secondary) font-medium ps-1">
                   +{dayTodos.length - 3} more
                 </div>
               )}
@@ -122,15 +122,15 @@ const CalendarPage = () => {
       );
       days = [];
     }
-    return <div className="border-t border-l border-(--border-color) rounded-xl overflow-hidden">{rows}</div>;
+    return <div className="border-t border-s border-(--border-color) rounded-xl overflow-hidden">{rows}</div>;
   };
 
   return (
     <div className="h-full flex flex-col gap-6">
       <header className="bg-primary -mx-4 md:-mx-8 -mt-4 md:-mt-8 mb-6 px-6 md:px-12 pt-12 pb-14 md:pb-16 arch-bottom shadow-lg shadow-primary/20 relative overflow-hidden flex flex-col min-aspect-4-3:flex-row min-aspect-4-3:items-center justify-between gap-6">
-        <div className="absolute top-4 left-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
-        <div className="absolute bottom-8 -right-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
+        <div className="absolute top-4 start-4 w-16 h-16 rounded-full border-4 border-(--text-on-primary) opacity-30 pointer-events-none" />
+        <div className="absolute bottom-8 -end-5 w-32 h-32 rounded-full bg-(--text-on-primary) opacity-20 pointer-events-none" />
+        <div className="absolute top-1/2 start-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-(--text-on-primary) opacity-10 pointer-events-none" />
 
         <div className="z-10 relative">
           <h1 className="text-4xl md:text-5xl font-black drop-shadow-md text-(--text-on-primary)">

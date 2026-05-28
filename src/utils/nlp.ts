@@ -34,9 +34,61 @@ const isValidDateParts = (day: number, month: number, year: number) => {
   return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day;
 };
 
+const parseArabicDateTerms = (text: string): { date: Date; text: string } | null => {
+  const lower = text.toLowerCase();
+  const now = new Date();
+  let matched = false;
+  let date: Date | null = null;
+  let term = '';
+
+  // tomorrow terms
+  if (/بكرة|بكره/.test(lower)) {
+    date = new Date(now);
+    date.setDate(date.getDate() + 1);
+    date.setHours(0, 0, 0, 0);
+    term = lower.match(/بكرة|بكره/)?.[0] || '';
+    matched = true;
+  }
+
+  if (!matched && /الصبح|الصباح/.test(lower)) {
+    date = new Date(now);
+    date.setHours(6, 0, 0, 0);
+    term = lower.match(/الصبح|الصباح/)?.[0] || '';
+    matched = true;
+  }
+
+  if (!matched && /المساء/.test(lower)) {
+    date = new Date(now);
+    date.setHours(18, 0, 0, 0);
+    term = lower.match(/المساء/)?.[0] || '';
+    matched = true;
+  }
+
+  if (!matched && /بليل/.test(lower)) {
+    date = new Date(now);
+    date.setHours(21, 0, 0, 0);
+    term = lower.match(/بليل/)?.[0] || '';
+    matched = true;
+  }
+
+  if (matched && date) {
+    const originalText = text.substring(
+      text.indexOf(term),
+      text.indexOf(term) + term.length
+    );
+    return { date, text: originalText };
+  }
+
+  return null;
+};
+
 const parseFlexibleDate = (text: string): { date: Date; text: string } | null => {
+  // Try Arabic terms first
+  const arabicResult = parseArabicDateTerms(text);
+  if (arabicResult) return arabicResult;
+
   const dateToken = String.raw`(?:\d{1,4}|jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t|tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)`;
-  const dateRegex = new RegExp(String.raw`\b(${dateToken})[\/.\-]+(${dateToken})(?:[\/.\-]+(\d{2,4}))?\b`, 'i');
+  const dateRegex = new RegExp(String.raw`\b(${dateToken})[\/.]+(${dateToken})(?:[\/.]+(\d{2,4}))?\b`, 'i');
   const match = text.match(dateRegex);
   if (!match) return null;
 
@@ -96,12 +148,12 @@ export const parseTaskInput = (text: string): ParsedInput => {
   }
 
   const tags: string[] = [];
-  const tagRegex = /#([\w]+)/g;
+  const tagRegex = /#([\w-]+)/g;
   let match;
   while ((match = tagRegex.exec(cleanedText)) !== null) {
     tags.push(match[1]);
   }
-  cleanedText = cleanedText.replace(/#[\w]+/g, '');
+  cleanedText = cleanedText.replace(/#[\w-]+/g, '');
 
   let dueDate: number | undefined;
   const flexibleDate = parseFlexibleDate(cleanedText);

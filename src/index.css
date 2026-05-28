@@ -94,9 +94,10 @@
 
 @layer utilities {
   /* Arch bottom — mimics QueueLess hero panel */
+  /* Logical: border-end-start-radius + border-end-end-radius for RTL */
   .arch-bottom {
-    border-bottom-left-radius: 3rem;
-    border-bottom-right-radius: 3rem;
+    border-end-start-radius: 3rem;
+    border-end-end-radius: 3rem;
   }
 
 
@@ -122,13 +123,13 @@
     0%, 100% { opacity: 0;    stroke-width: 0; }
     15%      { opacity: 0.6; stroke-width: 5; }
     25%      { opacity: 0.6; stroke-width: 5; }
-    80%      { opacity: 0;    stroke-width: 0; }
+    88%      { opacity: 0;    stroke-width: 0; }
   }
   @keyframes pulse-ring-outer {
     0%, 100% { opacity: 0;     stroke-width: 0; }
     30%      { opacity: 0.15; stroke-width: 7; }
     35%      { opacity: 0.15; stroke-width: 7; }
-    55%      { opacity: 0;     stroke-width: 0; }
+    70%      { opacity: 0;     stroke-width: 0; }
   }
 
   .animate-pulse-ring-1 {
@@ -192,7 +193,7 @@
     opacity: 1;
     cursor: pointer;
     background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
-    border-left: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+    border-inline-start: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
   .number-spinner-primary::-webkit-outer-spin-button:hover,
   .number-spinner-primary::-webkit-inner-spin-button:hover {

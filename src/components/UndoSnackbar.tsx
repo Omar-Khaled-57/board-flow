@@ -82,7 +82,7 @@ const UndoSnackbar = () => {
 
   return (
     <div
-      className="fixed left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-300"
+      className="fixed start-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-300"
       style={{
         bottom: isKeyboardOpen
           ? `${keyboardOffset}px`
@@ -111,7 +111,7 @@ const UndoSnackbar = () => {
         </div>
         <button
           onClick={() => setVisible(false)}
-          className="text-(--text-secondary) hover:text-(--text-primary) ml-1 transition-colors"
+          className="text-(--text-secondary) hover:text-(--text-primary) ms-1 transition-colors"
           aria-label="Close undo bar"
         >
           <X size={14} />

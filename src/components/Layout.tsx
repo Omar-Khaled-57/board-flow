@@ -1,12 +1,12 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { Home, Calendar, BarChart2, Settings } from 'lucide-react';
+import { ClipboardList, Calendar, BarChart2, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import UndoSnackbar from './UndoSnackbar';
 import useNotificationScheduler from '../hooks/useNotificationScheduler';
 import { useTodoStore } from '../store/useTodoStore';
 
 const navItems = [
-  { to: '/', icon: Home, label: 'Tasks' },
+  { to: '/', icon: ClipboardList, label: 'Tasks' },
   { to: '/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/stats', icon: BarChart2, label: 'Stats' },
   { to: '/options', icon: Settings, label: 'Options' },
@@ -46,9 +46,10 @@ const Layout = () => {
 
   return (
     <div className="flex min-h-screen bg-(--bg-color) text-(--text-primary)">
-      {/* Sidebar for desktop / large tablets */}
+      {/* Desktop sidebar — sticky, collapsible */}
+      {/* Logical: border-e for RTL border-inline-end */}
       <nav
-        className={`hidden md:flex shrink-0 sticky top-0 h-screen bg-(--card-bg) border-r border-(--border-color) flex-col transition-[width] duration-300 ease-out shadow-md ${
+        className={`hidden md:flex shrink-0 sticky top-0 h-screen bg-(--card-bg) border-e border-(--border-color) flex-col transition-[width] duration-300 ease-out shadow-md ${
           isSidebarExpanded ? 'w-64' : 'w-20'
         }`}
       >
@@ -64,6 +65,7 @@ const Layout = () => {
               BF
             </button>
           </div>
+          {/* Sidebar brand label — collapses/expands with sidebar */}
           <span
             className={`overflow-hidden whitespace-nowrap font-black text-2xl tracking-tight text-primary transition-[max-width,opacity,transform] duration-300 ease-out ${
               isSidebarExpanded ? 'max-w-44 opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-2'
@@ -74,12 +76,14 @@ const Layout = () => {
         </div>
 
         <div className="relative flex-1 px-3 mt-4">
+          {/* Active nav indicator track — slides vertically */}
           <div
-            className="absolute left-3 right-3 top-0 h-12 rounded-r-3xl rounded-l-none bg-primary/10 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            className="absolute start-3 end-3 top-0 h-12 rounded-e-3xl rounded-s-none bg-primary/10 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             style={{ transform: `translateY(${activeNavIndex * 3.5}rem)` }}
             aria-hidden="true"
           >
-            <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-l-full" />
+            {/* Active indicator left bar */}
+            <div className="absolute inset-block-0 start-0 w-1 bg-primary rounded-s-full" />
           </div>
           <div className="relative z-10 space-y-2">
           {navItems.map((item) => (
@@ -87,7 +91,7 @@ const Layout = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex h-12 items-center rounded-r-3xl rounded-l-none transition-colors duration-200 relative group overflow-hidden ${
+                `flex h-12 items-center rounded-e-3xl rounded-s-none transition-colors duration-200 relative group overflow-hidden ${
                   isActive
                     ? 'text-primary font-bold'
                     : 'text-(--text-secondary) hover:bg-white/50 dark:hover:bg-white/5 hover:text-(--text-primary) font-medium'
@@ -99,7 +103,8 @@ const Layout = () => {
                   <span className="z-10 flex w-12 shrink-0 justify-center">
                     <item.icon size={22} className={`shrink-0 transition-colors duration-200 ${isActive ? "text-primary" : "group-hover:text-primary/70"}`} />
                   </span>
-                  <span
+                  {/* Sidebar nav label — collapses inline with sidebar */}
+            <span
                     className={`z-10 overflow-hidden whitespace-nowrap transition-[max-width,opacity,transform,color] duration-300 ease-out ${
                       isSidebarExpanded ? 'max-w-32 opacity-100 translate-x-0' : 'max-w-0 opacity-0 -translate-x-2'
                     } ${isActive ? "text-primary" : "group-hover:text-primary/70"}`}
@@ -122,7 +127,7 @@ const Layout = () => {
         </main>
         <UndoSnackbar />
 
-        {/* Bottom navigation for mobile */}
+        {/* Mobile bottom navigation — fixed bar with sliding active indicator */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-(--card-bg) border-t border-(--border-color) shadow-md pb-4 portrait:pb-9">
           <div className="relative grid grid-cols-4 px-2 py-2">
             <div
