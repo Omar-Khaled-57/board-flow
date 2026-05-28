@@ -14,7 +14,9 @@ const navItems = [
 
 /* ─── Layout ─── */
 const Layout = () => {
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const settings = useTodoStore(state => state.settings);
+  const updateSettings = useTodoStore(state => state.updateSettings);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(settings.sidebarExpanded);
   const location = useLocation();
   useNotificationScheduler();
 
@@ -38,6 +40,11 @@ const Layout = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo, redo]);
+
+  // Persist sidebar collapsed/expanded state
+  useEffect(() => {
+    updateSettings({ sidebarExpanded: isSidebarExpanded });
+  }, [isSidebarExpanded]);
 
   const activeNavIndex = Math.max(
     0,
@@ -78,12 +85,12 @@ const Layout = () => {
         <div className="relative flex-1 px-3 mt-4">
           {/* Active nav indicator track — slides vertically */}
           <div
-            className="absolute start-3 end-3 top-0 h-12 rounded-e-3xl rounded-s-none bg-primary/10 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            className="absolute left-3 right-3 top-0 h-12 rounded-r-3xl rounded-l-none bg-primary/10 shadow-sm transition-transform duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             style={{ transform: `translateY(${activeNavIndex * 3.5}rem)` }}
             aria-hidden="true"
           >
             {/* Active indicator left bar */}
-            <div className="absolute inset-block-0 start-0 w-1 bg-primary rounded-s-full" />
+            <div className="absolute inset-y-0 left-0 w-1 bg-primary rounded-l-full" />
           </div>
           <div className="relative z-10 space-y-2">
           {navItems.map((item) => (
@@ -91,7 +98,7 @@ const Layout = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex h-12 items-center rounded-e-3xl rounded-s-none transition-colors duration-200 relative group overflow-hidden ${
+                `flex h-12 items-center rounded-r-3xl rounded-l-none transition-colors duration-200 relative group overflow-hidden ${
                   isActive
                     ? 'text-primary font-bold'
                     : 'text-(--text-secondary) hover:bg-white/50 dark:hover:bg-white/5 hover:text-(--text-primary) font-medium'

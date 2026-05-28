@@ -49,6 +49,7 @@ export interface Settings {
   hideDeleteInTasks: boolean;
   verticalActionButtons: boolean;
   lastActiveListId: string;
+  sidebarExpanded: boolean;
   sortField: SortField;
   sortDirection: SortDirection;
 }

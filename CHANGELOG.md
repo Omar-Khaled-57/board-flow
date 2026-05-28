@@ -36,11 +36,13 @@ A running log of every change, fix, and decision during development.
 - **Hyphen NLP handling** — removed `-` from flexible date separator regex so hyphens in task titles are preserved rather than treated as date delimiters
 - **Duplicate TodoList blocks** — consolidated two conditional `TodoList` render blocks that caused layout duplication
 - **Mobile navbar full width** — reverted `inset-inline-0` to physical `left-0 right-0` on mobile bottom nav for Android WebView compatibility; same fix applied to indicator bar (`inset-inline-0` → `inset-x-0`) and its positioning/transition properties
+- **Desktop sidebar indicator broken** — reverted logical CSS properties (`start-3 end-3`, `inset-block-0 start-0`, `rounded-e-3xl rounded-s-none`) to physical equivalents (`left-3 right-3`, `inset-y-0 left-0`, `rounded-r-3xl rounded-l-none`) to restore the active page highlight in landscape mode
 
 ### 🧹 Changes
 - Added `lastActiveListId`, `sortField`, `sortDirection` to `Settings` type with defaults
 - Created `SortDropdown.tsx` as reusable custom select component
 - Created `dev/tstl8r.md` test-later checklist
+- **Sidebar state persisted** — added `sidebarExpanded` to `Settings` type with default `true`; the sidebar's collapsed/expanded state now persists across sessions via `updateSettings`
 - Version bumped to `0.6.0`
 
 ## v0.5.2 — Android Export Fix

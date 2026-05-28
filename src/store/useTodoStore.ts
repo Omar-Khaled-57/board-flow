@@ -47,6 +47,7 @@ const defaultSettings: Settings = {
   hideDeleteInTasks: false,
   verticalActionButtons: false,
   lastActiveListId: 'all',
+  sidebarExpanded: true,
   sortField: 'date-added',
   sortDirection: 'desc',
 };
