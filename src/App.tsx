@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import Layout from './components/Layout';
-import Home from './pages/Home';
+import Tasks from './pages/Tasks';
+import NotesPage from './pages/NotesPage';
+import NoteDetails from './pages/NoteDetails';
 import CalendarPage from './pages/CalendarPage';
 import StatsPage from './pages/StatsPage';
 import Options from './pages/Options';
@@ -53,7 +55,9 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Layout />}>
-          <Route index element={<Home />} />
+          <Route index element={<Tasks />} />
+          <Route path="notes" element={<NotesPage />} />
+          <Route path="notes/:id" element={<NoteDetails />} />
           <Route path="calendar" element={<CalendarPage />} />
           <Route path="stats" element={<StatsPage />} />
           <Route path="options" element={<Options />} />

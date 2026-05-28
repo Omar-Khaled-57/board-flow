@@ -17,6 +17,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
   const todos = useTodoStore(state => state.todos);
   const settings = useTodoStore(state => state.settings);
   const setTodoOrder = useTodoStore(state => state.setTodoOrder);
+  const updateSettings = useTodoStore(state => state.updateSettings);
 
 
   const [draggedId, setDraggedId] = useState<string | null>(null);
@@ -68,24 +69,26 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
 
   const sortedTodos = useMemo(() => {
     const sorted = [...filteredTodos];
-    sorted.sort((a, b) => compareField(a, b, settings.sortField, settings.sortDirection));
-    if (settings.completedToBottom) {
-      sorted.sort((a, b) => {
-        if (a.completed && !b.completed) return 1;
-        if (!a.completed && b.completed) return -1;
-        return 0;
-      });
+    if (settings.sortField !== 'custom') {
+      sorted.sort((a, b) => compareField(a, b, settings.sortField, settings.sortDirection));
+      if (settings.completedToBottom) {
+        sorted.sort((a, b) => {
+          if (a.completed && !b.completed) return 1;
+          if (!a.completed && b.completed) return -1;
+          return 0;
+        });
+      }
     }
     return sorted;
   }, [filteredTodos, settings.completedToBottom, settings.sortField, settings.sortDirection]);
 
-  // ── FLIP animation for completedToBottom reordering ──
+  // ── FLIP animation for reordering ──
   const prevPositionsRef = useRef<Map<string, DOMRect>>(new Map());
   const prevSortedIdsRef = useRef<string[]>([]);
   const flipAnimatingRef = useRef(false);
 
   useLayoutEffect(() => {
-    if (!settings.completedToBottom || draggedId) return;
+    if (draggedId) return;
 
     const container = listRef.current;
     if (!container) return;
@@ -254,6 +257,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
           const orderForFiltered = newIds.filter(id => filteredIdSet.has(id));
           const otherIds = todos.filter(t => !filteredIdSet.has(t.id)).map(t => t.id);
           setTodoOrder([...orderForFiltered, ...otherIds]);
+          updateSettings({ sortField: 'custom' });
         }
       }
 
@@ -269,7 +273,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
       document.removeEventListener('pointermove', handlePointerMove);
       document.removeEventListener('pointerup', handlePointerUp);
     };
-  }, [draggedId, todos, setTodoOrder]);
+  }, [draggedId, todos, setTodoOrder, updateSettings]);
 
   const showEmptyState = todos.length === 0;
   const showNoMatch = todos.length > 0 && sortedTodos.length === 0;
@@ -278,7 +282,7 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
   return (
     <div ref={listRef} className="relative min-h-[32rem]">
       {showEmptyState && (
-        <div className="flex flex-col items-center justify-center py-20 text-center text-(--text-primary) opacity-80 dark:opacity-100">
+        <div className="flex flex-col items-center justify-center py-10 text-center text-(--text-primary) opacity-80 dark:opacity-100">
           <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
             <Sparkles size={40} className="text-primary" />
           </div>
@@ -291,14 +295,14 @@ const TodoList = ({ searchQuery = '', filter = 'all', tagFilter, showUnlistedOnl
             </p>
             <p className="max-w-xs">
               <strong className="text-primary">Tags:</strong>{' '}
-              use # to add tags, like "#home".
+              use # to add tags, like "#tasks".
             </p>
             <p className="max-w-xs">
               <strong className="text-primary">Priority:</strong>{' '}
               use "!!", "!high", "!med", or "!low".
             </p>
             <div className="mt-1 w-full rounded-xl border border-(--border-color) bg-(--bg-color) px-4 py-3 text-center text-sm font-medium text-(--text-primary) shadow-sm">
-              Example: "Buy milk 20/05/27 !! #home"
+              Example: "Buy milk 20/05/27 !! #tasks"
             </div>
           </div>
         </div>

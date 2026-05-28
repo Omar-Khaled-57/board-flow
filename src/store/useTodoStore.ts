@@ -59,7 +59,7 @@ export const useTodoStore = create<TodoState>()(
     (set) => ({
       todos: [],
       tags: [
-        { id: '1', name: 'Home', color: '#e85d5d' },
+        { id: '1', name: 'Tasks', color: '#e85d5d' },
         { id: '2', name: 'Work', color: '#5b6af0' },
         { id: '3', name: 'School', color: '#3cb878' },
       ],

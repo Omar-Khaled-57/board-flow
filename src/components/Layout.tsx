@@ -1,5 +1,5 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { ClipboardList, Calendar, BarChart2, Settings } from 'lucide-react';
+import { ClipboardList, NotebookPen, Calendar, BarChart2, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import UndoSnackbar from './UndoSnackbar';
 import useNotificationScheduler from '../hooks/useNotificationScheduler';
@@ -7,6 +7,7 @@ import { useTodoStore } from '../store/useTodoStore';
 
 const navItems = [
   { to: '/', icon: ClipboardList, label: 'Tasks' },
+  { to: '/notes', icon: NotebookPen, label: 'Notes' },
   { to: '/calendar', icon: Calendar, label: 'Calendar' },
   { to: '/stats', icon: BarChart2, label: 'Stats' },
   { to: '/options', icon: Settings, label: 'Options' },
@@ -126,7 +127,7 @@ const Layout = () => {
         </div>
       </nav>
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 overflow-auto p-4 md:p-8 pb-32 md:pb-8 animate-fade-in">
           <div className="max-w-7xl mx-auto h-full relative">
             <Outlet />
@@ -136,12 +137,12 @@ const Layout = () => {
 
         {/* Mobile bottom navigation — fixed bar with sliding active indicator */}
         <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-(--card-bg) border-t border-(--border-color) shadow-md pb-4 portrait:pb-9">
-          <div className="relative grid grid-cols-4 px-2 py-2">
+          <div className="relative grid grid-cols-5 px-2 py-2">
             <div
               className="absolute top-2 bottom-2 rounded-t-3xl rounded-b-none bg-primary/10 shadow-sm transition-[left] duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
               style={{
-                left: `calc(0.5rem + ${activeNavIndex} * ((100% - 1rem) / 4))`,
-                width: 'calc((100% - 1rem) / 4)',
+                left: `calc(0.5rem + ${activeNavIndex} * ((100% - 1rem) / 5))`,
+                width: 'calc((100% - 1rem) / 5)',
               }}
               aria-hidden="true"
             >

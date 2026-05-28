@@ -27,11 +27,11 @@ const NLPGuide = () => {
             <p>Type naturally to auto-fill task details:</p>
             <ul className="space-y-2 list-none p-0 m-0">
               <li><strong className="text-primary">Dates:</strong> write "tomorrow", "20 May 2027", "20/may/2027", or "20/05/27"</li>
-              <li><strong className="text-primary">Tags:</strong> use # to add tags (e.g. "#home")</li>
+              <li><strong className="text-primary">Tags:</strong> use # to add tags (e.g. "#tasks")</li>
               <li><strong className="text-primary">Priority:</strong> "!!", "!high", "!med", "!low"</li>
             </ul>
             <div className="rounded-xl mt-5 border border-(--border-color) bg-(--bg-color) px-4 py-3 text-center text-sm font-medium text-(--text-primary) shadow-sm">
-              Example: "Buy milk 20/05/27 !! #home"
+              Example: "Buy milk 20/05/27 !! #tasks"
             </div>
           </div>
         </div>

@@ -33,15 +33,21 @@ const StatsPage = () => {
 
   if (hasNoData) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-8 text-(--text-secondary)">
-        <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-          <TrendingUp size={48} className="text-primary" />
+      <div className="h-full flex flex-col items-center justify-center p-8">
+        <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 flex-1 flex items-center justify-center max-w-lg w-full">
+          <div className="flex flex-col items-center justify-center py-16 text-center text-(--text-primary) opacity-80 dark:opacity-100">
+            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+              <TrendingUp size={40} className="text-primary" />
+            </div>
+            <h3 className="text-2xl font-bold text-(--text-primary) mb-3">No Stats Yet</h3>
+            <div className="mx-auto flex max-w-sm flex-col items-center gap-2.5 text-center text-sm leading-6 text-(--text-primary) dark:opacity-85">
+              <p>
+                Your insights will appear here once you start completing tasks. 
+                Head over to the <strong className="text-primary">Tasks page</strong> and crush your first goal!
+              </p>
+            </div>
+          </div>
         </div>
-        <h2 className="text-2xl font-bold text-(--text-primary) mb-2">No Stats Yet</h2>
-        <p className="max-w-md">
-          Your productivity insights will appear here once you start completing tasks. 
-          Head over to the home page and crush your first goal!
-        </p>
       </div>
     );
   }

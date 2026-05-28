@@ -13,7 +13,7 @@ type TaskListTab = {
   showUnlistedOnly?: boolean;
 };
 
-const Home = () => {
+const Tasks = () => {
   const todos = useTodoStore(state => state.todos);
   const lists = useTodoStore(state => state.lists);
   const addList = useTodoStore(state => state.addList);
@@ -380,6 +380,7 @@ const Home = () => {
                   value={settings.sortField}
                   onChange={v => updateSettings({ sortField: v as SortField })}
                   options={[
+                    { value: 'custom', label: 'Custom' },
                     { value: 'date-added', label: 'Date Added' },
                     { value: 'name', label: 'Name' },
                     { value: 'due-date', label: 'Due Date' },
@@ -408,6 +409,7 @@ const Home = () => {
           </div>
         </div>
 
+        {/* Landscape/desktop layout: stacked task list */}
         {!useStackedLandscapeLayout && (
         <div className="hidden lg:flex flex-col bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-4 md:p-6">
           <div className="flex items-center justify-between gap-3 mb-4">
@@ -417,6 +419,7 @@ const Home = () => {
                 value={settings.sortField}
                 onChange={v => updateSettings({ sortField: v as SortField })}
                 options={[
+                  { value: 'custom', label: 'Custom' },
                   { value: 'date-added', label: 'Date Added' },
                   { value: 'name', label: 'Name' },
                   { value: 'due-date', label: 'Due Date' },
@@ -449,4 +452,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Tasks;

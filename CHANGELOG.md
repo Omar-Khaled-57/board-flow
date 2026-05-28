@@ -4,6 +4,24 @@ A running log of every change, fix, and decision during development.
 
 ---
 
+## v0.7.0 — Notes System
+
+**Focus**: Full notes subsystem with dedicated pages, rich editing, tag & list integration, and task linking.
+
+### 🚀 New Features
+- **Notes page** — new `/notes` route with the same shared Lists system as Tasks, search (title, tags, content), and sort controls (Date Added, Updated, Title, Tags)
+- **NoteDetails page** — full note viewer/editor at `/notes/:id` with top bar (back, edit, delete), inline editing with tag management, and floating action buttons
+- **NoteItem component** — structured card layout: title + edit/delete actions + creation/edit metadata, primary-colored divider, 2–3 line content preview with "...", and tags section
+- **Rich Insert Editor** — floating inline editor (triggered by "+" button) for inserting primary-colored text, highlighted text, inline #tags, clickable links (display name + URL), and math equations
+- **Note linking** — link a note to a task via a dropdown of all tasks; shows linked status and supports unlinking
+- **File attachments** — attach images, videos, or documents to notes via the Paperclip button with file picker integration
+- **Navbar integration** — Notes tab positioned between Tasks and Calendar using the `NotebookPen` lucide icon; mobile nav updated to 5-column grid
+
+### 🧹 Changes
+- Added `Note`, `NoteAttachment`, and `NoteSortField` types to the shared type system
+- Created `useNotesStore` (Zustand + persist) for notes CRUD, sort preferences, and attachment management
+- Mobile bottom nav grid updated from `grid-cols-4` to `grid-cols-5` with adjusted indicator calculations
+
 ## v0.6.0 — Custom Dropdowns, Calendar Picker, RTL Support & More
 
 **Focus**: Custom dropdown menus, in-flow calendar picker, tag autocomplete from todos, logical CSS properties for RTL/LTR compatibility.

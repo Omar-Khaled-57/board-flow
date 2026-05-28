@@ -145,7 +145,7 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         className="w-full ps-12 pe-12 py-4 rounded-[2rem] bg-(--card-bg) border border-black dark:border-white shadow-[0_0_15px_var(--color-primary)] focus:shadow-[0_0_25px_var(--color-primary)] focus:border-primary outline-none transition-all text-lg placeholder:text-gray-400 dark:placeholder:text-gray-600"
-        placeholder="Add a task... (e.g., 'Buy milk tomorrow !! #home')"
+        placeholder="Add a task... (e.g., 'Buy milk tomorrow !! #tasks')"
         aria-label="New task input"
       />
       
@@ -173,40 +173,40 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
 
       {/* Smart Preview Area */}
       {debouncedInput.trim() && (
-        <div className="absolute top-full inset-inline-0 mt-2 bg-(--card-bg) border border-(--border-color) rounded-lg shadow-lg p-3 flex items-center gap-3 text-sm z-10 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex-1 font-medium truncate text-(--text-primary)">
+        <div className="absolute top-full inset-inline-0 mt-2 bg-(--card-bg) border border-(--border-color) rounded-lg shadow-lg p-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-sm z-10 overflow-hidden min-w-0 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex-1 font-medium truncate text-(--text-primary) min-w-[6rem]">
             {parsed.title || '...'}
           </div>
           
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 min-w-0 max-w-full overflow-hidden flex-wrap">
             {parsed.dueDate && (
-              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md">
-                <Calendar size={14} />
-                <span>{formatTaskDate(parsed.dueDate)}</span>
+              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md max-w-[140px] truncate shrink-0">
+                <Calendar size={14} className="shrink-0" />
+                <span className="truncate">{formatTaskDate(parsed.dueDate)}</span>
               </div>
             )}
             {parsed.dueDate && formatTaskTime(parsed.dueDate) && (
-              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md">
-                <Clock size={14} />
-                <span>{formatTaskTime(parsed.dueDate)}</span>
+              <div className="flex items-center gap-1 text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md max-w-[120px] truncate shrink-0">
+                <Clock size={14} className="shrink-0" />
+                <span className="truncate">{formatTaskTime(parsed.dueDate)}</span>
               </div>
             )}
             
             {parsed.tags.map(t => (
-              <div key={t} className="flex items-center gap-1 tag-pill text-primary px-2 py-1 rounded-md">
-                <TagIcon size={14} />
-                <span>{t}</span>
+              <div key={t} className="flex items-center gap-1 tag-pill text-primary px-2 py-1 rounded-md max-w-[160px] shrink-0">
+                <TagIcon size={14} className="shrink-0" />
+                <span className={/[-_]/.test(t) ? 'min-w-0 [overflow-wrap:anywhere]' : 'truncate'}>{t}</span>
               </div>
             ))}
 
             <div className={clsx(
-              "flex items-center gap-1 px-2 py-1 rounded-md capitalize font-semibold border border-transparent",
+              "flex items-center gap-1 px-2 py-1 rounded-md capitalize font-semibold border border-transparent shrink-0 max-w-[100px] truncate",
               parsed.priority === 'high' ? "badge-danger dark:bg-[#EF5350]/12 dark:text-[#EF5350] dark:border-[#EF5350]/22" :
               parsed.priority === 'low' ? "badge-success dark:bg-[#66BB6A]/12 dark:text-[#66BB6A] dark:border-[#66BB6A]/22" :
               "text-gray-600 bg-gray-100 dark:text-[#FFAB00] dark:bg-[#FFAB00]/12 dark:border-[#FFAB00]/22"
             )}>
-              <Flag size={12} />
-              <span>{parsed.priority}</span>
+              <Flag size={12} className="shrink-0" />
+              <span className="truncate">{parsed.priority}</span>
             </div>
           </div>
         </div>

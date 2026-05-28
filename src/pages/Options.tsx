@@ -67,53 +67,51 @@ const Dropdown = <T extends string>({
 
 const ClearStatsButton = () => {
   const clearStats = useStatsStore(state => state.clearStats);
-  const [confirming, setConfirming] = useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
-    <div
-      className={`grid transition-all duration-300 ease-out rounded-xl border ${
-        confirming
-          ? 'border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 shadow-sm'
-          : 'border-transparent'
-      }`}
-    >
+    <div className={`rounded-xl border transition-all duration-300 ease-out ${
+      open ? 'border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 shadow-sm' : 'border-transparent'
+    }`}>
       <div
-        className={`col-start-1 row-start-1 transition-all duration-300 ease-out ${
-          confirming ? 'opacity-0 scale-95 pointer-events-none' : 'opacity-100 scale-100'
+        className={`grid transition-all duration-300 ease-out ${
+          open ? 'grid-rows-[0fr] opacity-0' : 'grid-rows-[1fr] opacity-100'
         }`}
-        aria-hidden={confirming}
       >
-        <button
-          type="button"
-          onClick={() => setConfirming(true)}
-          className="inline-flex items-center justify-center rounded-full border border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 px-4 py-2.5 text-sm font-semibold text-[#B91C1C] dark:text-red-400 transition-all hover:bg-[#FEE2E2]/80 dark:hover:bg-red-900/20 hover:shadow-md active:scale-95"
-        >
-          Clear Stats
-        </button>
+        <div className="overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex items-center justify-center rounded-full border border-[#EF4444] dark:border-red-400/30 bg-[#FEE2E2] dark:bg-red-900/10 px-4 py-2.5 text-sm font-semibold text-[#B91C1C] dark:text-red-400 transition-all hover:bg-[#FEE2E2]/80 dark:hover:bg-red-900/20 hover:shadow-md active:scale-95"
+          >
+            Clear Stats
+          </button>
+        </div>
       </div>
       <div
-        className={`col-start-1 row-start-1 transition-all duration-300 ease-out ${
-          confirming ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'
+        className={`grid transition-all duration-300 ease-out ${
+          open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
         }`}
-        aria-hidden={!confirming}
       >
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 py-2.5">
-          <p className="text-sm font-medium text-[#B91C1C] dark:text-red-400">This will permanently erase all statistics data.</p>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
-            <button
-              type="button"
-              onClick={() => { clearStats(); setConfirming(false); }}
-              className="inline-flex items-center justify-center rounded-full bg-red-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-600 active:scale-95"
-            >
-              Confirm
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirming(false)}
-              className="inline-flex items-center justify-center rounded-full border border-(--border-color) bg-(--bg-color) px-3.5 py-1.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--card-bg) active:scale-95"
-            >
-              Cancel
-            </button>
+        <div className="overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 px-4 pt-3 pb-1">
+            <p className="text-sm font-medium text-[#B91C1C] dark:text-red-400">This will permanently erase all statistics data.</p>
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                type="button"
+                onClick={() => { clearStats(); setOpen(false); }}
+                className="inline-flex items-center justify-center rounded-full bg-red-500 px-3.5 py-1.5 text-xs font-bold text-white transition-all hover:bg-red-600 active:scale-95"
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="inline-flex items-center justify-center rounded-full border border-(--border-color) bg-(--bg-color) px-3.5 py-1.5 text-xs font-semibold text-(--text-secondary) transition-all hover:bg-(--card-bg) active:scale-95"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       </div>

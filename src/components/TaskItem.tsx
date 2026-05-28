@@ -242,7 +242,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
           {/* View mode */}
           <div
             className={clsx(
-              "prose prose-sm dark:prose-invert max-w-full break-words [word-break:break-word] transition-all duration-500",
+              "prose prose-sm dark:prose-invert max-w-full min-w-0 break-words [word-break:break-word] overflow-hidden line-clamp-3 [&_*]:max-w-full [&_code]:whitespace-pre-wrap [&_pre]:whitespace-pre-wrap transition-all duration-500",
               (task.completed || isCompleting) && "line-through text-(--text-completed)"
             )}
             dangerouslySetInnerHTML={markup}
@@ -281,9 +281,9 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
               </div>
             )}
             {task.tags.map(t => (
-              <div key={t} className="flex items-center gap-1 text-primary tag-pill px-2 py-1 rounded-md">
-                <TagIcon size={12} />
-                <span>{t}</span>
+              <div key={t} className="flex items-center gap-1 text-primary tag-pill px-2 py-1 rounded-md max-w-[160px]">
+                <TagIcon size={12} className="shrink-0" />
+                <span className={/[-_]/.test(t) ? 'min-w-0 [overflow-wrap:anywhere]' : 'truncate'}>{t}</span>
               </div>
             ))}
           </div>
@@ -316,21 +316,25 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
             <div className="flex flex-wrap items-center gap-2">
               <div ref={dateMenuRef} className="flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setDateMenuOpen(o => !o)}
-                    className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
-                    aria-label="Open calendar"
-                  >
-                    <Calendar size={16} className="text-primary" />
-                  </button>
-                  <input
-                type="text"
-                value={dateInput}
-                onChange={e => setDateInput(e.target.value)}
-                placeholder="Set due date..."
-                className="flex-1 min-w-[80px] rounded-lg border border-(--border-color) bg-(--bg-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none focus:border-primary"
-              />
+                  <span className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setDateMenuOpen(o => !o)}
+                      className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                      aria-label="Open calendar"
+                    >
+                      <Calendar size={16} className="text-primary" />
+                    </button>
+                    <input
+                  type="text"
+                  value={dateInput}
+                  onChange={e => setDateInput(e.target.value)}
+                  placeholder="Set due date..."
+                  className="w-28 rounded-lg border border-(--border-color) bg-(--bg-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none focus:border-primary"
+                />
+                  </span>
+              <span className="flex items-center gap-2 shrink-0">
+              <Clock size={16} className="text-primary shrink-0" />
               <input
                 type="time"
                 value={timeInput}
@@ -351,6 +355,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
                 }}
                 className="w-28 rounded-lg border border-(--border-color) bg-(--bg-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 [accent-color:var(--color-primary)] [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
               />
+              </span>
               {parsedDate && (
                 <span className="text-xs text-primary font-semibold whitespace-nowrap">
                   {formatTaskDate(parsedDate)}
@@ -506,9 +511,9 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
 
             <div className="flex flex-wrap items-center gap-2 relative" ref={tagSuggestionRef}>
               {editorTags.map(tag => (
-                <span key={tag} className="inline-flex items-center gap-1.5 tag-pill text-primary px-3 py-1.5 rounded-md text-sm font-semibold">
-                  <TagIcon size={14} />
-                  <span>{tag}</span>
+                <span key={tag} className="inline-flex items-center gap-1.5 tag-pill text-primary px-3 py-1.5 rounded-md text-sm font-semibold max-w-[160px]">
+                  <TagIcon size={14} className="shrink-0" />
+                  <span className={/[-_]/.test(tag) ? 'min-w-0 [overflow-wrap:anywhere]' : 'truncate'}>{tag}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveTag(tag)}

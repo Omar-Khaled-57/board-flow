@@ -161,7 +161,7 @@ const CalendarPage = () => {
                </div>
                <h2 className="text-2xl font-bold text-(--text-primary) mb-2">No Scheduled Tasks</h2>
                <p className="max-w-md text-sm">
-                 Tasks with dates or times will appear here. Try adding a due date to a task to see it on the calendar!
+                 <strong className="text-primary">Tasks</strong> with <strong className="text-primary">dates</strong> or <strong className="text-primary">times</strong> will appear here. Try adding a due date to a task to see it on the <strong className="text-primary text-base">calendar.</strong>
                </p>
             </div>
           ) : (

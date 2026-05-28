@@ -34,7 +34,31 @@ export interface Todo {
   createdAt: number;
 }
 
-export type SortField = 'name' | 'date-added' | 'due-date' | 'priority' | 'tags';
+export interface NoteAttachment {
+  id: string;
+  type: 'image' | 'video' | 'document';
+  name: string;
+  path: string;
+  size?: number;
+}
+
+export interface Note {
+  id: string;
+  title: string;
+  content: string;
+  tags: string[];
+  listId?: string;
+  linkedTaskId?: string;
+  attachments?: NoteAttachment[];
+  dueDate?: number;
+  priority: Priority;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type NoteSortField = 'custom' | 'title' | 'date-added' | 'updated-at' | 'tags';
+
+export type SortField = 'custom' | 'name' | 'date-added' | 'due-date' | 'priority' | 'tags';
 export type SortDirection = 'asc' | 'desc';
 
 export interface Settings {
