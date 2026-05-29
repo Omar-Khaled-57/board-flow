@@ -26,7 +26,7 @@ package-lock.json
 
 # Extra
 dev/
-my-release-key.jks
+*.jks
 .vscode/
 
 # Keep Tauri/Cargo build artifacts ignored
