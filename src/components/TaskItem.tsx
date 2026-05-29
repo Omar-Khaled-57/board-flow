@@ -43,7 +43,6 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
   });
   const [debouncedDateInput, setDebouncedDateInput] = useState('');
-  const [isExiting, setIsExiting] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const [calendarViewDate, setCalendarViewDate] = useState(() => {
     const d = task.dueDate ? new Date(task.dueDate) : new Date();
@@ -143,10 +142,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
   }, [task.id, task.completed, toggleTodo, settings.soundEnabled, incrementCompleted]);
 
   const handleDelete = useCallback(() => {
-    setIsExiting(true);
-    setTimeout(() => {
-      deleteTodo(task.id);
-    }, 300);
+    deleteTodo(task.id);
   }, [task.id, deleteTodo]);
 
   const handleSaveEdit = () => {
@@ -196,7 +192,6 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
           ? "bg-[#E7EBEF] dark:bg-[#1A1F26] border-transparent"
           : "bg-(--card-bg) border-(--border-color) shadow-sm hover:shadow-md hover:border-primary-light dark:hover:bg-[#252B33] dark:hover:shadow-[0_0_10px_var(--color-primary)] dark:hover:border-primary/50",
         isDragging ? "opacity-50 scale-[0.98] shadow-lg border-primary" : "",
-        isExiting ? "animate-task-exit" : "",
         isCompleting ? "opacity-60 scale-[0.98]" : "",
         (task.completed && !isCompleting) ? "opacity-80 scale-[0.98]" : ""
       )}

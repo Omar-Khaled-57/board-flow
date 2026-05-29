@@ -19,44 +19,72 @@ interface NotesState {
   setNoteSortDirection: (dir: 'asc' | 'desc') => void;
   undo: () => void;
   redo: () => void;
+
+  noteIndexes: {
+    byId: Map<string, Note>;
+  };
+  getNoteById: (id: string) => Note | undefined;
 }
 
 const HISTORY_LIMIT = 50;
 
+export function buildNoteIndexes(notes: Note[]) {
+  const byId = new Map<string, Note>();
+  for (const note of notes) {
+    byId.set(note.id, note);
+  }
+  return { byId };
+}
+
 export const useNotesStore = create<NotesState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       notes: [],
       noteSortField: 'date-added',
       noteSortDirection: 'desc',
       past: [],
       future: [],
+      noteIndexes: { byId: new Map() },
+
+      getNoteById: (id) => get().noteIndexes.byId.get(id),
 
       addNote: (data) => {
         const id = generateId();
         const now = Date.now();
         const note: Note = { ...data, id, createdAt: now, updatedAt: now };
-        set((state) => ({
-          notes: [note, ...state.notes],
-          past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
-          future: [],
-        }));
+        set((state) => {
+          const newNotes = [note, ...state.notes];
+          return {
+            notes: newNotes,
+            past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
+            future: [],
+            noteIndexes: buildNoteIndexes(newNotes),
+          };
+        });
         return id;
       },
 
-      updateNote: (id, updates) => set((state) => ({
-        notes: state.notes.map(n =>
+      updateNote: (id, updates) => set((state) => {
+        const newNotes = state.notes.map(n =>
           n.id === id ? { ...n, ...updates, updatedAt: Date.now() } : n
-        ),
-        past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
-        future: [],
-      })),
+        );
+        return {
+          notes: newNotes,
+          past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
+          future: [],
+          noteIndexes: buildNoteIndexes(newNotes),
+        };
+      }),
 
-      deleteNote: (id) => set((state) => ({
-        notes: state.notes.filter(n => n.id !== id),
-        past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
-        future: [],
-      })),
+      deleteNote: (id) => set((state) => {
+        const newNotes = state.notes.filter(n => n.id !== id);
+        return {
+          notes: newNotes,
+          past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
+          future: [],
+          noteIndexes: buildNoteIndexes(newNotes),
+        };
+      }),
 
       setNoteOrder: (orderedIds) => set((state) => {
         const idSet = new Set(orderedIds);
@@ -64,10 +92,12 @@ export const useNotesStore = create<NotesState>()(
           .map(id => state.notes.find(n => n.id === id))
           .filter((n): n is Note => n !== undefined);
         const remaining = state.notes.filter(n => !idSet.has(n.id));
+        const newNotes = [...reordered, ...remaining];
         return {
-          notes: [...reordered, ...remaining],
+          notes: newNotes,
           past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
           future: [],
+          noteIndexes: buildNoteIndexes(newNotes),
         };
       }),
 
@@ -78,6 +108,7 @@ export const useNotesStore = create<NotesState>()(
           notes: previous,
           past: state.past.slice(0, -1),
           future: [state.notes, ...state.future],
+          noteIndexes: buildNoteIndexes(previous),
         };
       }),
 
@@ -88,6 +119,7 @@ export const useNotesStore = create<NotesState>()(
           notes: next,
           past: [...state.past, state.notes].slice(-HISTORY_LIMIT),
           future: state.future.slice(1),
+          noteIndexes: buildNoteIndexes(next),
         };
       }),
 
@@ -101,6 +133,11 @@ export const useNotesStore = create<NotesState>()(
         notes: state.notes,
         noteSortField: state.noteSortField,
         noteSortDirection: state.noteSortDirection,
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<NotesState>),
+        noteIndexes: buildNoteIndexes((persisted as Partial<NotesState>).notes ?? current.notes),
       }),
     }
   )

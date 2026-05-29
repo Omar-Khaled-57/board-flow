@@ -27,6 +27,7 @@ package-lock.json
 # Extra
 dev/
 my-release-key.jks
+.vscode/
 
 # Keep Tauri/Cargo build artifacts ignored
 target/
@@ -39,3 +40,9 @@ target/
 .env
 .env.*
 !.env.example
+
+# TypeScript incremental build info
+*.tsbuildinfo
+
+# Test coverage output
+coverage/

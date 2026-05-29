@@ -4,6 +4,8 @@ import { Todo, Settings, Tag, TaskList } from '../types';
 import { getStorageAdapter } from './storage';
 import { generateId } from '../utils/id';
 
+const HISTORY_LIMIT = 50;
+
 interface TodoStateShallow {
   todos: Todo[];
   tags: Tag[];
@@ -27,11 +29,20 @@ interface TodoStateShallow {
 
   undo: () => void;
   redo: () => void;
+
+  todoIndexes: {
+    byListId: Map<string, Todo[]>;
+    byTag: Map<string, Todo[]>;
+    byPriority: Map<string, Todo[]>;
+    byId: Map<string, Todo>;
+  };
+
+  getTodosByListId: (listId: string) => Todo[];
+  getTodosByTag: (tag: string) => Todo[];
+  getTodoById: (id: string) => Todo | undefined;
 }
 
 export type TodoState = TodoStateShallow;
-
-const HISTORY_LIMIT = 50;
 
 const defaultSettings: Settings = {
   theme: 'system',
@@ -50,9 +61,38 @@ const defaultSettings: Settings = {
   sortDirection: 'desc',
 };
 
+export function buildTodoIndexes(todos: Todo[]) {
+  const byListId = new Map<string, Todo[]>();
+  const byTag = new Map<string, Todo[]>();
+  const byPriority = new Map<string, Todo[]>();
+  const byId = new Map<string, Todo>();
+
+  for (const todo of todos) {
+    byId.set(todo.id, todo);
+
+    const listKey = todo.listId ?? '__unlisted__';
+    let listArr = byListId.get(listKey);
+    if (!listArr) { listArr = []; byListId.set(listKey, listArr); }
+    listArr.push(todo);
+
+    const priKey = todo.priority;
+    let priArr = byPriority.get(priKey);
+    if (!priArr) { priArr = []; byPriority.set(priKey, priArr); }
+    priArr.push(todo);
+
+    for (const tag of todo.tags) {
+      let tagArr = byTag.get(tag);
+      if (!tagArr) { tagArr = []; byTag.set(tag, tagArr); }
+      tagArr.push(todo);
+    }
+  }
+
+  return { byListId, byTag, byPriority, byId };
+}
+
 export const useTodoStore = create<TodoState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       todos: [],
       tags: [
         { id: '1', name: 'Tasks', color: '#e85d5d' },
@@ -66,6 +106,20 @@ export const useTodoStore = create<TodoState>()(
       settings: defaultSettings,
       past: [],
       future: [],
+      todoIndexes: { byListId: new Map(), byTag: new Map(), byPriority: new Map(), byId: new Map() },
+
+      getTodosByListId: (listId) => {
+        const idx = get().todoIndexes;
+        return idx.byListId.get(listId) ?? idx.byListId.get('__unlisted__') ?? [];
+      },
+
+      getTodosByTag: (tag) => {
+        return get().todoIndexes.byTag.get(tag) ?? [];
+      },
+
+      getTodoById: (id) => {
+        return get().todoIndexes.byId.get(id);
+      },
 
       addTodo: (todoData) => set((state) => {
         const newTodo: Todo = {
@@ -73,14 +127,14 @@ export const useTodoStore = create<TodoState>()(
           id: generateId(),
           createdAt: Date.now(),
         };
-        const newTodos = state.settings.addToTop 
-          ? [newTodo, ...state.todos] 
+        const newTodos = state.settings.addToTop
+          ? [newTodo, ...state.todos]
           : [...state.todos, newTodo];
-          
         return {
           todos: newTodos,
           past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-          future: []
+          future: [],
+          todoIndexes: buildTodoIndexes(newTodos),
         };
       }),
 
@@ -89,7 +143,8 @@ export const useTodoStore = create<TodoState>()(
         return {
           todos: newTodos,
           past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-          future: []
+          future: [],
+          todoIndexes: buildTodoIndexes(newTodos),
         };
       }),
 
@@ -98,7 +153,8 @@ export const useTodoStore = create<TodoState>()(
         return {
           todos: newTodos,
           past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-          future: []
+          future: [],
+          todoIndexes: buildTodoIndexes(newTodos),
         };
       }),
 
@@ -107,7 +163,8 @@ export const useTodoStore = create<TodoState>()(
         return {
           todos: newTodos,
           past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-          future: []
+          future: [],
+          todoIndexes: buildTodoIndexes(newTodos),
         };
       }),
 
@@ -116,22 +173,25 @@ export const useTodoStore = create<TodoState>()(
         return {
           todos: newTodos,
           past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-          future: []
+          future: [],
+          todoIndexes: buildTodoIndexes(newTodos),
         };
       }),
 
-      setTodoOrder: (orderedIds: string[]) => set((state) => {
-    const idSet = new Set(orderedIds);
-    const reordered = orderedIds
-      .map((id: string) => state.todos.find(t => t.id === id))
-      .filter((t): t is Todo => t !== undefined);
-    const remaining = state.todos.filter(t => !idSet.has(t.id));
-    return {
-      todos: [...reordered, ...remaining],
-      past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-      future: []
-    };
-  }),
+      setTodoOrder: (orderedIds) => set((state) => {
+        const idSet = new Set(orderedIds);
+        const reordered = orderedIds
+          .map((id: string) => state.todos.find(t => t.id === id))
+          .filter((t): t is Todo => t !== undefined);
+        const remaining = state.todos.filter(t => !idSet.has(t.id));
+        const newTodos = [...reordered, ...remaining];
+        return {
+          todos: newTodos,
+          past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
+          future: [],
+          todoIndexes: buildTodoIndexes(newTodos),
+        };
+      }),
 
       addTag: (tagData) => set((state) => ({
         tags: [...state.tags, { ...tagData, id: generateId() }]
@@ -141,10 +201,16 @@ export const useTodoStore = create<TodoState>()(
         lists: [...state.lists, { ...listData, id: generateId(), createdAt: Date.now() }]
       })),
 
-      deleteList: (id) => set((state) => ({
-        lists: state.lists.filter(l => l.id !== id),
-        todos: state.todos.map(t => t.listId === id ? { ...t, listId: undefined } : t)
-      })),
+      deleteList: (id) => set((state) => {
+        const newTodos = state.todos.map(t => t.listId === id ? { ...t, listId: undefined } : t);
+        return {
+          lists: state.lists.filter(l => l.id !== id),
+          todos: newTodos,
+          past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
+          future: [],
+          todoIndexes: buildTodoIndexes(newTodos),
+        };
+      }),
 
       renameList: (id, newName) => set((state) => ({
         lists: state.lists.map(l => l.id === id ? { ...l, name: newName } : l)
@@ -157,22 +223,22 @@ export const useTodoStore = create<TodoState>()(
       undo: () => set((state) => {
         if (state.past.length === 0) return state;
         const previous = state.past[state.past.length - 1];
-        const newPast = state.past.slice(0, state.past.length - 1);
         return {
           todos: previous,
-          past: newPast,
-          future: [state.todos, ...state.future]
+          past: state.past.slice(0, -1),
+          future: [state.todos, ...state.future],
+          todoIndexes: buildTodoIndexes(previous),
         };
       }),
 
       redo: () => set((state) => {
         if (state.future.length === 0) return state;
         const next = state.future[0];
-        const newFuture = state.future.slice(1);
         return {
           todos: next,
           past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
-          future: newFuture
+          future: state.future.slice(1),
+          todoIndexes: buildTodoIndexes(next),
         };
       }),
     }),
@@ -184,7 +250,12 @@ export const useTodoStore = create<TodoState>()(
         tags: state.tags,
         lists: state.lists,
         settings: state.settings,
-      }), // don't persist undo/redo history
+      }),
+      merge: (persisted, current) => ({
+        ...current,
+        ...(persisted as Partial<TodoState>),
+        todoIndexes: buildTodoIndexes((persisted as Partial<TodoState>).todos ?? current.todos),
+      }),
     }
   )
 );

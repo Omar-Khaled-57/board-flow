@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import 'mathlive';
 import { Type, Highlighter, Hash, Link, Sigma, X } from 'lucide-react';
 import { useClickOutside } from '../hooks/useClickOutside';
 
@@ -31,16 +30,20 @@ const RichInsertEditor = ({ onInsert, onClose }: RichInsertEditorProps) => {
   useEffect(() => {
     if (selectedType !== 'math' || !mathContainerRef.current || mathInitDone.current) return;
     mathInitDone.current = true;
-    const el = document.createElement('math-field') as any;
+    const container = mathContainerRef.current;
+    (async () => {
+      await import('mathlive');
+      const el = document.createElement('math-field') as any;
     el.setAttribute('virtual-keyboard-mode', 'manual');
     el.setAttribute('math-mode', 'math');
     el.className = 'w-full min-h-[3rem] px-3 py-2 text-sm';
     el.style.color = 'var(--text-primary)';
     el.style.background = 'transparent';
     el.style.setProperty('--mathlive-background-color', 'transparent');
-    mathContainerRef.current.appendChild(el);
+    container.appendChild(el);
     const handler = () => setInputValue(el.value ?? '');
     el.addEventListener('input', handler);
+    })();
   }, [selectedType]);
 
   const handleInsert = useCallback(() => {

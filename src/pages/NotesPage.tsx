@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Tag, Plus, FolderKanban, ArrowUp, ArrowDown, Sparkles } from 'lucide-react';
+import { Search, Tag, Plus, FolderKanban, ArrowUp, ArrowDown, Sparkles, Edit2, Trash2 } from 'lucide-react';
 import { useTodoStore } from '../store/useTodoStore';
 import { useNotesStore } from '../store/useNotesStore';
 import { NoteSortField } from '../types';
@@ -20,11 +20,17 @@ const NotesPage = () => {
   const setNoteOrder = useNotesStore(state => state.setNoteOrder);
   const navigate = useNavigate();
   const lists = useTodoStore(state => state.lists);
+  const addList = useTodoStore(state => state.addList);
+  const deleteList = useTodoStore(state => state.deleteList);
+  const renameList = useTodoStore(state => state.renameList);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTagFilter, setActiveTagFilter] = useState('');
   const [activeListId, setActiveListId] = useState('all');
   const [showLists, setShowLists] = useState(false);
   const [showAllTags, setShowAllTags] = useState(false);
+  const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [editingListName, setEditingListName] = useState('');
+  const [newListName, setNewListName] = useState('');
   const listPanelRef = useRef<HTMLDivElement>(null);
   const [listPanelHeight, setListPanelHeight] = useState(0);
 
@@ -92,11 +98,25 @@ const NotesPage = () => {
     navigate(`/notes/${newId}`, { state: { focusNew: true } });
   }, [activeListId, addNote, navigate]);
 
+  const handleAddList = useCallback(() => {
+    if (newListName.trim()) {
+      addList({ name: newListName, color: '#5b6af0' });
+      setNewListName('');
+    }
+  }, [newListName, addList]);
+
+  const handleRenameList = useCallback((listId: string, newName: string) => {
+    if (newName.trim()) {
+      renameList(listId, newName);
+      setEditingListId(null);
+    }
+  }, [renameList]);
+
   useEffect(() => {
     if (showLists && listPanelRef.current) {
       setListPanelHeight(listPanelRef.current.scrollHeight);
     }
-  }, [showLists, lists]);
+  }, [showLists, lists, editingListId]);
 
   return (
     <div className="h-full flex flex-col gap-6 min-w-0">
@@ -186,45 +206,125 @@ const NotesPage = () => {
         aria-hidden={!showLists}
       >
         <div ref={listPanelRef}>
-          <div className="rounded-[2rem] border border-(--border-color) bg-(--card-bg) shadow-sm shadow-[var(--shadow-color)] p-2.5 sm:p-3">
+          <div className="rounded-[2rem] border border-(--border-color) bg-(--card-bg) shadow-sm shadow-[var(--shadow-color)] p-2.5 sm:p-3 flex flex-col gap-2">
             <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setActiveListId('all')}
-                className={`min-h-9 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                  activeListId === 'all'
-                    ? 'bg-primary text-(--text-on-primary) shadow-sm'
-                    : 'bg-(--bg-color) text-(--text-secondary) hover:bg-primary/10 hover:text-primary border border-(--border-color)'
-                }`}
-              >
-                All Notes
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveListId('unlisted')}
-                className={`min-h-9 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                  activeListId === 'unlisted'
-                    ? 'bg-primary text-(--text-on-primary) shadow-sm'
-                    : 'bg-(--bg-color) text-(--text-secondary) hover:bg-primary/10 hover:text-primary border border-(--border-color)'
-                }`}
-              >
-                No List
-              </button>
-              {lists.map(list => (
+              {[{ id: 'all', label: 'All Notes' }, { id: 'unlisted', label: 'No List' }, ...lists.map(l => ({ id: `list:${l.id}`, label: l.name }))].map(tab => {
+                const isListTab = tab.id.startsWith('list:');
+                const listId = isListTab ? tab.id.split(':')[1] : null;
+                const isActiveList = activeListId === tab.id;
+
+                return (
+                  <div
+                    key={tab.id}
+                    className="group flex max-w-full items-center gap-1 rounded-full border backdrop-blur-md transition-all duration-300 ease-out border-(--border-color) bg-(--bg-color)/70 px-1.5 py-1 shadow-sm"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setActiveListId(tab.id)}
+                      className={`flex min-h-9 min-w-0 max-w-full items-center gap-2 rounded-full px-3.5 py-2 text-sm font-bold transition-all shadow-none ${
+                        isActiveList
+                          ? 'bg-primary text-(--text-on-primary) shadow-sm'
+                          : 'bg-transparent text-(--text-secondary) hover:bg-primary/10 hover:text-primary'
+                      }`}
+                    >
+                      <span className="truncate">{tab.label}</span>
+                    </button>
+
+                    {isListTab && listId && (
+                      <div
+                        className={`origin-inline-start flex shrink-0 gap-1 overflow-hidden transition-[max-width,opacity,transform,margin] duration-300 ease-out ${
+                          isActiveList
+                            ? 'ms-0 max-w-20 opacity-100 scale-100 pointer-events-auto'
+                            : '-ms-1 max-w-0 opacity-0 scale-90 pointer-events-none'
+                        }`}
+                        aria-hidden={!isActiveList}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingListId(listId);
+                            setEditingListName(lists.find(l => l.id === listId)?.name || '');
+                          }}
+                          className={`grid min-h-8 w-8 place-items-center rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-(--text-on-primary) transition-all duration-300 shadow-none ${
+                            isActiveList ? 'scale-100' : 'scale-75'
+                          }`}
+                          title="Rename list"
+                          aria-label={`Rename ${tab.label}`}
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteList(listId)}
+                          className={`grid min-h-8 w-8 place-items-center rounded-full bg-danger/10 text-danger hover:bg-danger hover:text-white transition-all duration-300 shadow-none ${
+                            isActiveList ? 'scale-100' : 'scale-75'
+                          }`}
+                          title="Delete list"
+                          aria-label={`Delete ${tab.label}`}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+
+              <div className="flex min-w-0 flex-1 basis-full items-center gap-2 sm:basis-64 lg:basis-72">
+                <input
+                  type="text"
+                  placeholder="New list..."
+                  title="Create a new list"
+                  value={newListName}
+                  onChange={e => setNewListName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleAddList();
+                  }}
+                  className="min-h-9 min-w-0 flex-1 rounded-xl bg-(--bg-color) border border-(--border-color) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-secondary) focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-none"
+                />
                 <button
-                  key={list.id}
                   type="button"
-                  onClick={() => setActiveListId(`list:${list.id}`)}
-                  className={`min-h-9 rounded-full px-4 py-2 text-sm font-bold transition-all ${
-                    activeListId === `list:${list.id}`
-                      ? 'bg-primary text-(--text-on-primary) shadow-sm'
-                      : 'bg-(--bg-color) text-(--text-secondary) hover:bg-primary/10 hover:text-primary border border-(--border-color)'
-                  }`}
+                  onClick={handleAddList}
+                  className="grid min-h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-(--text-on-primary) transition-all shadow-none"
+                  title="Add new list"
+                  aria-label="Add new list"
                 >
-                  {list.name}
+                  <Plus size={16} />
                 </button>
-              ))}
+              </div>
             </div>
+
+            {editingListId && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 px-2 py-2 bg-primary/5 rounded-2xl">
+                <input
+                  type="text"
+                  placeholder="List name..."
+                  title="Rename list"
+                  value={editingListName}
+                  onChange={e => setEditingListName(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleRenameList(editingListId, editingListName);
+                    if (e.key === 'Escape') setEditingListId(null);
+                  }}
+                  autoFocus
+                  className="min-h-9 flex-1 px-3 py-2 rounded-xl bg-(--card-bg) border border-primary/30 text-sm focus:outline-none focus:border-primary shadow-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleRenameList(editingListId, editingListName)}
+                  className="min-h-9 px-4 py-2 bg-primary text-(--text-on-primary) text-sm rounded-xl hover:bg-primary-hover transition-all shadow-none"
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditingListId(null)}
+                  className="min-h-9 px-4 py-2 bg-(--bg-color) text-(--text-primary) border border-(--border-color) text-sm rounded-xl hover:bg-primary/10 transition-all shadow-none"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

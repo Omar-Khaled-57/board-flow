@@ -1,11 +1,13 @@
 import { useRef, useState, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { version } from '../../package.json';
-import { useTodoStore } from '../store/useTodoStore';
+import { useTodoStore, buildTodoIndexes } from '../store/useTodoStore';
+import { useNotesStore, buildNoteIndexes } from '../store/useNotesStore';
 import { useStatsStore } from '../store/useStatsStore';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
-import { Todo } from '../types';
+import { DailyGoal, Todo } from '../types';
 import PageHeader from '../components/PageHeader';
 import ToggleSwitch from '../components/ToggleSwitch';
 
@@ -127,9 +129,15 @@ const Options = () => {
   const settings = useTodoStore(state => state.settings);
   const updateSettings = useTodoStore(state => state.updateSettings);
   const todos = useTodoStore(state => state.todos);
+  const tags = useTodoStore(state => state.tags);
   const lists = useTodoStore(state => state.lists);
   const addTodo = useTodoStore(state => state.addTodo);
+  const notes = useNotesStore(state => state.notes);
+  const noteSortField = useNotesStore(state => state.noteSortField);
+  const noteSortDirection = useNotesStore(state => state.noteSortDirection);
   const dailyGoals = useStatsStore(state => state.dailyGoals);
+  const currentStreak = useStatsStore(state => state.currentStreak);
+  const longestStreak = useStatsStore(state => state.longestStreak);
   const setDailyGoal = useStatsStore(state => state.setDailyGoal);
   const todayKey = new Date().toISOString().slice(0, 10);
   const todayGoal = dailyGoals[todayKey]?.goal ?? 5;
@@ -139,44 +147,85 @@ const Options = () => {
     setGoalInput(String(todayGoal));
   }, [todayGoal]);
 
-  const [selectedExportList, setSelectedExportList] = useState('all');
+  const [selectedExportList, setSelectedExportList] = useState('__full__');
   const [selectedImportList, setSelectedImportList] = useState('all');
   const [importMessage, setImportMessage] = useState('');
   const [exportMessage, setExportMessage] = useState('');
   const [showFallback, setShowFallback] = useState('');
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const normalizedLists = [{ id: 'all', name: 'All tasks' }, ...lists];
+  const exportOptions = [
+    { id: '__full__', name: 'Full backup' },
+    { id: 'all', name: 'All tasks' },
+    ...lists.map(l => ({ id: l.id, name: l.name })),
+  ];
+  const importOptions = lists.length > 0
+    ? [{ id: 'all', name: 'All tasks' }, ...lists.map(l => ({ id: l.id, name: l.name }))]
+    : [{ id: 'all', name: 'All tasks' }];
 
   const handleExportTasks = async () => {
     try {
       const listId = selectedExportList;
-      const exportTasks = listId === 'all'
-        ? todos
-        : todos.filter(task => task.listId === listId);
+      let json: string;
+      let filename: string;
+      let itemCount = 0;
 
-      if (exportTasks.length === 0) {
-        setExportMessage('No tasks to export.');
-        return;
+      if (listId === '__full__') {
+        const payload = {
+          version: 2,
+          type: 'full-backup',
+          exportedAt: Date.now(),
+          tags,
+          lists,
+          todos: todos.map(t => ({ ...t, dueDate: t.dueDate || null })),
+          notes: notes.map(n => ({ ...n, dueDate: n.dueDate || null })),
+          noteSortField,
+          noteSortDirection,
+          settings,
+          stats: { dailyGoals, currentStreak, longestStreak },
+        };
+        json = JSON.stringify(payload, null, 2);
+        filename = `boardflow-full-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        itemCount = todos.length + notes.length;
+      } else {
+        const exportTasks = listId === 'all'
+          ? todos
+          : todos.filter(task => task.listId === listId);
+
+        if (exportTasks.length === 0) {
+          setExportMessage('No tasks to export.');
+          return;
+        }
+
+        const payload = {
+          version: 1,
+          exportedAt: Date.now(),
+          listId: listId === 'all' ? null : listId,
+          tasks: exportTasks.map(task => ({
+            ...task,
+            dueDate: task.dueDate || null,
+          })),
+        };
+        json = JSON.stringify(payload, null, 2);
+        filename = `boardflow-tasks-${listId === 'all' ? 'all' : listId}.json`;
+        itemCount = exportTasks.length;
       }
-
-      const payload = {
-        version: 1,
-        exportedAt: Date.now(),
-        listId: listId === 'all' ? null : listId,
-        tasks: exportTasks.map(task => ({
-          ...task,
-          dueDate: task.dueDate || null,
-        })),
-      };
-
-      const json = JSON.stringify(payload, null, 2);
-      const filename = `boardflow-tasks-${listId === 'all' ? 'all' : listId}.json`;
 
       const isTauri = typeof window !== 'undefined' && typeof (window as any).__TAURI_IPC__ !== 'undefined';
       const isAndroid = isTauri && navigator.userAgent.toLowerCase().includes('android');
 
       if (isTauri) {
+        if (isAndroid) {
+          try {
+            await invoke('save_to_downloads', { filename, data: json });
+            setExportMessage(`Exported ${itemCount} item${itemCount === 1 ? '' : 's'} to your Downloads folder.`);
+          } catch (e) {
+            console.error('save_to_downloads failed:', e);
+            setShowFallback(json);
+            setExportMessage('Export to Downloads failed. Copy the JSON below and save it manually.');
+          }
+          return;
+        }
         const filePath = await save({
           defaultPath: filename,
           filters: [{ name: 'JSON', extensions: ['json'] }],
@@ -187,17 +236,13 @@ const Options = () => {
         }
         try {
           await writeTextFile(filePath, json);
-          setExportMessage(`Exported ${exportTasks.length} task${exportTasks.length === 1 ? '' : 's'} to ${filePath}.`);
+          setExportMessage(`Exported ${itemCount} item${itemCount === 1 ? '' : 's'} to ${filePath}.`);
         } catch (writeError) {
           console.error('Tauri write failed:', writeError);
-          if (isAndroid) {
-            setExportMessage('Export failed. The save dialog may not be supported on your device. Try using the desktop version.');
-          } else {
-            tryFallbackDownload(json, filename, exportTasks.length);
-          }
+          tryFallbackDownload(json, filename, itemCount);
         }
       } else {
-        tryFallbackDownload(json, filename, exportTasks.length);
+        tryFallbackDownload(json, filename, itemCount);
       }
     } catch (e) {
       setExportMessage('Export failed: ' + (e instanceof Error ? e.message : 'unknown error'));
@@ -270,8 +315,82 @@ const Options = () => {
     try {
       const text = await file.text();
       const payload = JSON.parse(text);
-      const rawTasks: any[] = Array.isArray(payload.tasks) ? payload.tasks : Array.isArray(payload) ? payload : [];
       const targetListId = selectedImportList === 'all' ? undefined : selectedImportList;
+
+      // Version 2 full backup — merge into existing data
+      if (payload.version === 2 && payload.type === 'full-backup') {
+        const state = useTodoStore.getState();
+        const notesState = useNotesStore.getState();
+        const statsState = useStatsStore.getState();
+
+        const existingTodoIds = new Set(state.todos.map(t => t.id));
+        const newTodos = ((payload.todos ?? []) as any[]).filter((t: any) => !existingTodoIds.has(t.id));
+
+        const existingNoteIds = new Set(notesState.notes.map(n => n.id));
+        const newNotes = ((payload.notes ?? []) as any[]).filter((n: any) => !existingNoteIds.has(n.id));
+
+        const existingTagIds = new Set(state.tags.map(t => t.id));
+        const newTags = ((payload.tags ?? []) as any[]).filter((t: any) => !existingTagIds.has(t.id));
+
+        const existingListIds = new Set(state.lists.map(l => l.id));
+        const newLists = ((payload.lists ?? []) as any[]).filter((l: any) => !existingListIds.has(l.id));
+
+        const mergedTodos = [...state.todos, ...newTodos];
+        const mergedNotes = [...notesState.notes, ...newNotes];
+        const mergedTags = [...state.tags, ...newTags];
+        const mergedLists = [...state.lists, ...newLists];
+
+        // Merge stats: take max completedCount per date, max streaks
+        const mergedGoals = { ...statsState.dailyGoals };
+        if (payload.stats?.dailyGoals) {
+          for (const [date, goal] of Object.entries(payload.stats.dailyGoals)) {
+            const g = goal as DailyGoal;
+            const existing = mergedGoals[date];
+            if (!existing || g.completedCount > existing.completedCount) {
+              mergedGoals[date] = g;
+            }
+          }
+        }
+        const mergedStreak = Math.max(statsState.currentStreak, payload.stats?.currentStreak ?? 0);
+        const mergedLongest = Math.max(statsState.longestStreak, payload.stats?.longestStreak ?? 0);
+
+        useTodoStore.setState({
+          todos: mergedTodos,
+          tags: mergedTags,
+          lists: mergedLists,
+          past: [],
+          future: [],
+          todoIndexes: buildTodoIndexes(mergedTodos),
+        });
+
+        useNotesStore.setState({
+          notes: mergedNotes,
+          past: [],
+          future: [],
+          noteIndexes: buildNoteIndexes(mergedNotes),
+        });
+
+        useStatsStore.setState({
+          dailyGoals: mergedGoals,
+          currentStreak: mergedStreak,
+          longestStreak: mergedLongest,
+        });
+
+        const parts: string[] = [];
+        if (newTodos.length > 0) parts.push(`${newTodos.length} task${newTodos.length === 1 ? '' : 's'}`);
+        if (newNotes.length > 0) parts.push(`${newNotes.length} note${newNotes.length === 1 ? '' : 's'}`);
+        if (newTags.length > 0) parts.push(`${newTags.length} tag${newTags.length === 1 ? '' : 's'}`);
+        if (newLists.length > 0) parts.push(`${newLists.length} list${newLists.length === 1 ? '' : 's'}`);
+        const imported = parts.join(', ');
+        const skipped = (Array.isArray(payload.todos) ? payload.todos.length : 0) - newTodos.length
+          + (Array.isArray(payload.notes) ? payload.notes.length : 0) - newNotes.length;
+        setImportMessage(`Imported ${imported || '0 items'}.${skipped > 0 ? ` ${skipped} duplicate${skipped === 1 ? '' : 's'} skipped.` : ''} Settings and sort preferences were kept from current session.`);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+
+      // Version 1 (or unversioned) — legacy per-list import
+      const rawTasks: any[] = Array.isArray(payload.tasks) ? payload.tasks : Array.isArray(payload) ? payload : [];
       let importedCount = 0;
 
       rawTasks.forEach(task => {
@@ -404,7 +523,7 @@ const Options = () => {
               onChange={v => updateSettings({ completedToBottom: v })}
             />
 
-            <div className="hidden landscape:flex">
+            <div className="hidden landscape:block">
               <ToggleSwitch
                 label="Stack composer above tasks"
                 sublabel="Landscape only. Turn off to use the split composer/list layout."
@@ -473,7 +592,7 @@ const Options = () => {
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-(--text-secondary)">Export</label>
                 <Dropdown
-                  items={normalizedLists}
+                  items={exportOptions}
                   value={selectedExportList}
                   onChange={v => setSelectedExportList(v)}
                 />
@@ -481,7 +600,7 @@ const Options = () => {
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-(--text-secondary)">Import into</label>
                 <Dropdown
-                  items={normalizedLists}
+                  items={importOptions}
                   value={selectedImportList}
                   onChange={v => setSelectedImportList(v)}
                 />

@@ -41,14 +41,14 @@ const useNotificationScheduler = () => {
 
       if (delay === 0) {
         // Due time already passed – notify immediately.
-        sendNativeNotification('Task Due Soon', todo.title);
+        sendNativeNotification('Upcoming Deadline', `Don't forget: '${todo.title}' is due soon.`);
         updateTodo(todo.id, { notified: true });
         return;
       }
 
       // Schedule a notification for the exact due time.
       const timeout = setTimeout(() => {
-        sendNativeNotification('Task Due Soon', todo.title);
+        sendNativeNotification('Upcoming Deadline', `Don't forget: '${todo.title}' is due soon.`);
         updateTodo(todo.id, { notified: true });
         delete timers.current[todo.id];
       }, delay);

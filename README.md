@@ -2,7 +2,7 @@
 
 # 📋 BoardFlow
 
-**A hybrid native task management app built with React + Tauri.**
+**A hybrid native productivity app — tasks, notes, calendar, and stats, all local-first.**
 
 [![Tauri](https://img.shields.io/badge/Tauri-2.0-24C8DB?logo=tauri&logoColor=white)](#)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](#)
@@ -10,35 +10,30 @@
 [![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite&logoColor=white)](#)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwind-css&logoColor=white)](#)
 [![Zustand](https://img.shields.io/badge/Zustand-5-764ABC?logo=react&logoColor=white)](#)
+[![Zod](https://img.shields.io/badge/Zod-4-3068B7?logo=zod&logoColor=white)](#)
 
 </div>
 
-<br />
+---
 
-BoardFlow is a React web frontend packaged with Tauri to run as a native desktop/mobile application. It is not a browser-only PWA; the app is distributed through the Tauri shell with native installers and mobile bundles.
+BoardFlow is a **local-first productivity app** that combines task management, notes, calendar, and statistics into one cohesive interface. It runs as a native desktop app (Windows, Linux, macOS) via Tauri and can be packaged for Android. Data stays on your device — no accounts, no cloud, no servers.
 
 ---
 
-## ✨ What this app is
+## ✨ Features
 
-- ✅ A **hybrid native application** using a web UI with a native shell
-- ✅ Built for **desktop platforms** via Tauri (Windows, Linux, macOS)
-- ✅ Supports **mobile packaging** through the Tauri Android/iOS toolchain
-- ✅ Uses **local native storage** rather than relying on browser storage
-- ✅ Not a pure PWA or browser-only app
-
----
-
-## ✨ Key Features
-
-- 🌍 **Hybrid Native App**: Single codebase with native desktop/mobile Tauri packaging.
-- 🎨 **Responsive UI**: Desktop sidebar navigation switches to mobile bottom navigation on smaller screens.
-- 💾 **Native storage**: Uses Tauri store for reliable local persistence.
-- 🧠 **NLP-friendly task entry**: Supports natural-language style task creation.
-- ⏪ **Undo/Redo support**: Includes undo/redo flows with a subtle snackbar.
-- 🌓 **Theme-aware UI**: Dark/light theming with smooth transitions.
-- 📊 **Calendar + Stats**: Built-in calendar and productivity statistics views.
-- 🔔 **Native notifications**: Uses OS notification capabilities through Tauri plugins.
+- **Task management** — create, edit, reorder, and organize tasks into lists with natural-language date parsing (e.g. "Buy milk tomorrow !!"), priorities, subtasks, and tags
+- **Notes system** — full notes page with rich inline editing, tag support, task linking (`linkedTaskId`), file attachments, list management (rename/delete), and sort controls (date added, updated, title, tags)
+- **Drag-and-drop reorder** — pointer-based drag with FLIP animations, ghost portal, and drop indicator on both tasks and notes
+- **Undo/redo** — snapshot-based history (50 levels) with a floating snackbar; global `Ctrl+Z`/`Ctrl+Y` shortcuts
+- **Calendar view** — monthly grid with task density per day, click-to-expand detail panel
+- **Statistics** — daily goal tracking, completion streaks, progress indicators
+- **Full backup & restore** — export all data (tasks, notes, tags, lists, settings, stats) as a single JSON file; import restores everything with all IDs and relationships intact
+- **Android export** — writes directly to `MediaStore.Downloads` via a custom Rust command + Kotlin JNI bridge, no storage permissions required
+- **Dark/light/system theme** — accent color picker, smooth transitions
+- **Native notifications** — scheduled reminders at task due times ("Upcoming Deadline") via Tauri notification plugin; daily goal achieved alert ("Goal Achieved 🎯") with custom Android notification icons; Web Notification API fallback
+- **Responsive layout** — sidebar on desktop, bottom nav on mobile, adapts to landscape
+- **Testing** — 24 Playwright E2E tests + 25 vitest unit tests (stores + utilities)
 
 ---
 
@@ -46,13 +41,54 @@ BoardFlow is a React web frontend packaged with Tauri to run as a native desktop
 
 | Category | Technology | Notes |
 | :--- | :--- | :--- |
-| App Shell | Tauri v2 | Native wrapper for web UI and cross-platform distribution |
-| Frontend | React 19 | Modern React UI and routing |
-| Language | TypeScript | Strong typing for frontend logic |
-| Bundler | Vite | Fast development and production builds |
-| Styling | Tailwind CSS v4 | Utility CSS with rapid responsive styling |
-| State | Zustand | Lightweight global state and persistence |
-| Icons | Lucide React | Simple, consistent icon library |
+| App Shell | Tauri v2 | Native wrapper, desktop + Android packaging |
+| Frontend | React 19 | Vite-bundled SPA with React Router |
+| Language | TypeScript | Full type safety across frontend and schemas |
+| Bundler | Vite 7 | Fast HMR and optimized production builds |
+| Styling | Tailwind CSS v4 | Utility-first with `@custom-variant dark` for theme |
+| State | Zustand 5 | Lightweight stores with `persist` middleware |
+| Schemas | Zod 4 | Runtime validation for all persisted data |
+| Icons | Lucide React | Consistent icon set |
+| Storage | IndexedDB (via `idb-keyval`) | Primary persistence, localStorage fallback |
+| History | Command-pattern `History` class | Patch-based undo/redo (50-level, batchable) |
+| NLP Dates | `chrono-node` | Natural language date parsing in task input |
+| Backend | Rust (Tauri plugins) | Notifications, dialog, FS, store, opener; custom `save_to_downloads` command with JNI → Kotlin for Android MediaStore |
+
+---
+
+## 📁 Project Structure
+
+```
+📦 BoardFlow
+ ┣ 📂 src                    # React frontend
+ ┃ ┣ 📂 components           # Shared UI (Badge, PageHeader, ToggleSwitch, EmptyState, etc.)
+ ┃ ┣ 📂 hooks                # Extracted hooks (useDragReorder, useClickOutside, useTagSuggestions)
+ ┃ ┣ 📂 pages                # App screens (Tasks, Notes, NoteDetails, Calendar, Stats, Options)
+ ┃ ┣ 📂 store                # Zustand stores (useTodoStore, useNotesStore, useStatsStore)
+ ┃ ┣ 📂 storage              # Persistence layer
+ ┃ ┃ ┣ 📜 storage.ts         # IndexedDB adapter + repository load/save helpers
+ ┃ ┃ ┣ 📜 migrations.ts      # Schema versioning framework + migration runner
+ ┃ ┃ ┣ 📜 history.ts         # Command-pattern undo/redo engine
+ ┃ ┃ ┗ 📂 repositories/      # Typed CRUD layer (tasks, notes, settings, stats)
+ ┃ ┣ 📂 schemas              # Zod schemas for all persisted types
+ ┃ ┣ 📂 types                # TypeScript interfaces (Todo, Note, Settings, etc.)
+ ┃ ┗ 📂 utils                # Helpers (id generation, date formatting, notifications, NLP)
+ ┣ 📂 src-tauri              # Tauri backend (Rust) + build configuration
+ ┃ ┣ 📂 src
+ ┃ ┃ ┣ 📜 lib.rs             # Plugin registration, command handler setup
+ ┃ ┃ ┣ 📜 main.rs            # Binary entry point
+ ┃ ┃ ┗ 📜 save_to_downloads.rs  # Custom Rust command + JNI bridge for Android export
+ ┃ ┣ 📂 capabilities/        # Tauri v2 capability permissions (FS scopes, dialog, notification, store)
+ ┃ ┗ 📂 gen/android/         # Android native project (Kotlin MainActivity with MediaStore helper)
+ ┗ 📂 dev                    # Development notes and analysis files
+```
+
+The **storage architecture** is layered:
+1. **Zustand stores** hold in-memory state with precomputed indexes (O(1) lookups by ID, list, tag, priority)
+2. **Repositories** abstract reads/writes with in-memory caching
+3. **IndexedDB** (via `idb-keyval`) is the primary persistence backend; falls back to `localStorage`
+4. **Zod schemas** validate every persisted value at runtime
+5. **Migration framework** handles schema version upgrades
 
 ---
 
@@ -63,7 +99,7 @@ BoardFlow is a React web frontend packaged with Tauri to run as a native desktop
 - Node.js 18+
 - Rust (stable)
 - Windows: Visual Studio C++ Build Tools
-- Android: Android Studio + SDK
+- Android: Android Studio + SDK + NDK
 - iOS/macOS: Xcode
 
 ### Install
@@ -72,49 +108,98 @@ BoardFlow is a React web frontend packaged with Tauri to run as a native desktop
 npm install
 ```
 
-### Run locally
+### Run locally (Tauri desktop app)
 
 ```bash
 npm run tauri dev
 ```
 
-This launches the Tauri app with the Vite frontend.
-
-To run the web frontend only:
+### Run web frontend only
 
 ```bash
 npm run dev
 ```
 
-### Build
+### Build desktop bundles
 
 ```bash
 npm run tauri build
 ```
 
-This creates native desktop bundles. Mobile builds are available via Tauri mobile targets.
+### Build for Android
 
----
+```bash
+npm run tauri android build
+```
 
-## 📁 Project Structure
+### Run unit tests
 
-```text
-📦 BoardFlow
- ┣ 📂 src               # React frontend
- ┃ ┣ 📂 components      # Shared UI components
- ┃ ┣ 📂 pages           # App screens (Tasks, Calendar, Stats, Options)
- ┃ ┣ 📂 store           # Zustand state + Tauri storage logic
- ┃ ┗ 📂 utils           # Helpers, NLP, notifications, audio
- ┣ 📂 src-tauri         # Tauri backend and build configuration
- ┗ 📂 dev               # Development notes and analysis files
+```bash
+npm run test              # run once
+npm run test:watch        # watch mode
+```
+
+### Run E2E tests
+
+```bash
+npx playwright test
 ```
 
 ---
+
+## 🧪 Tests
+
+### Unit Tests (vitest)
+
+25 vitest tests run in JSDOM with Tauri APIs mocked:
+
+| File | Tests | Coverage |
+| :--- | :--- | :--- |
+| `useTodoStore.test.ts` | 13 | CRUD, toggle, undo/redo, order, tags, lists, settings, indexes |
+| `useNotesStore.test.ts` | 8 | CRUD, undo/redo, sort prefs, order, updatedAt |
+| `id.test.ts` | 4 | Length, uniqueness, charset |
+
+### E2E Tests (Playwright)
+
+24 Playwright tests run in Chromium with auto-starting dev server:
+
+| Spec | Tests | Coverage |
+| :--- | :--- | :--- |
+| `tasks.spec.ts` | 7 | Create, complete, filter, delete, search, clear completed, list management |
+| `notes.spec.ts` | 4 | Create, empty state, search, navigation |
+| `export-import.spec.ts` | 5 | Options page, export/import buttons, file input |
+| `undo-redo.spec.ts` | 3 | Snackbar visibility, undo restores, redo reapplies |
+| `theme.spec.ts` | 5 | Toggle light/dark, accent color selection |
+
+```bash
+npx playwright test          # run all
+npx playwright test --ui     # interactive UI mode
+```
+
+---
+
+## 🔄 Data Flow
+
+```
+User Action → Zustand Store → IndexedDB (persist)
+                ↓
+          Precomputed Indexes → O(1) lookups
+                ↓
+          Re-render via selectors
+```
+
+Undo/redo uses snapshot history for tasks and notes (50 levels), while the separate `History` class supports command-pattern batching for future features.
+
+Export/import uses a versioned JSON schema (v1 per-list tasks, v2 full backup) with all relationships preserved by keeping original IDs intact.
+
+---
+
+## 📄 License
 
 <div align="center">
   <i>Built with 🫩 by Omar Khaled El-Khouly.</i>
 </div>
 
-<div align="center" class="mt-4 text-sm text-[#6b7280]">
+<div align="center">
   © 2026 Omar Khaled El-Khouly — created by Omar-Khaled-57 on GitHub.
 </div>

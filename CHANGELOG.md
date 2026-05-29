@@ -4,6 +4,105 @@ A running log of every change, fix, and decision during development.
 
 ---
 
+## v0.8.0 — Android Build Fix, Chunk Splitting & Unit Tests
+
+**Focus**: Fix Android build broken by Tauri 2.11.2 API change, optimize bundle size, add unit test infrastructure.
+
+### 🐛 Bug Fixes
+- **Android build fixed** — `app.env().android_app` was removed from Tauri's `Env` struct in v2.11.2; replaced with `ndk_context::android_context()` which provides `vm()` and `context()` raw pointers for JNI access. Added `ndk-context = "0.1"` to Cargo.toml. The `save_impl()` function was refactored into two platform-specific implementations to eliminate unreachable code warnings.
+
+### 🚀 New Features
+- **Per-notification icon support** — `sendNativeNotification()` now accepts an optional third `iconName` parameter; resolved via `resolveResource()` with a per-name cache
+- **Goal notification icon** — daily goal reached notification now bundles `icons/Notifications/target.png` as its icon resource
+- **Unit test suite** — vitest + @testing-library/react + jsdom + fake-indexeddb; 25 tests across 3 files covering `generateId`, `useTodoStore` (13 tests), and `useNotesStore` (8 tests). Tauri APIs mocked via `vi.mock()` in the setup file.
+
+### ✨ UI Improvements
+- **Task reminder** — title changed from `"Task Due Soon"` → `"Upcoming Deadline"`, body changed from `<title>` → `"Don't forget: '{title}' is due soon."`
+- **Goal achieved** — title changed from `"Daily Goal Reached!"` → `"Goal Achieved 🎯"`, body changed from `"You have completed all your tasks for today. Great job!"` → `"All tasks completed for today. Nice work."`
+
+### 🧹 Changes
+- **Bundle optimization** — main JS chunk reduced from 1,535 KB → 211 KB using `manualChunks` splitting (vendor-react, vendor-katex, vendor-utils). `mathlive` is now dynamically imported on-demand (822 KB lazy-loaded only when user opens the math editor). All 6 page routes are lazy-loaded via `React.lazy()` + `Suspense`. Chunk warning limit raised to 1000 KB.
+- Version bumped to 0.8.0
+- Added `icons/Notifications/target.png` to Tauri `bundle.resources` in `tauri.conf.json`
+- `src/utils/notifications.ts` — `resolveIcon` now takes an icon name parameter, caches results per name
+- `src/hooks/useNotificationScheduler.ts` — updated notification title and body strings
+- `src/store/useStatsStore.ts` — updated notification title, body, and passes icon name
+- Added `ndk-context = "0.1"` to Cargo.toml for Android JVM/activity access
+- `src-tauri/src/save_to_downloads.rs` — rewritten to use `ndk_context::android_context()`, separated into platform-specific `save_impl` functions
+- Added vitest, @testing-library/react, @testing-library/jest-dom, jsdom, fake-indexeddb dev dependencies
+- Created `vitest.config.ts`, `src/test/setup.ts` with Tauri API mocks
+- Added `npm run test` and `npm run test:watch` scripts
+
+## v0.7.9 — E2E Testing, Delete Animation Fix & Editable Notes Lists
+
+**Focus**: Stabilize the UI with E2E tests, fix the delete-task animation glitch, and make list management consistent across Tasks and Notes.
+
+### 🧪 E2E Testing
+- **Playwright installed** — Chromium browser downloaded and configured for E2E testing
+- **24 E2E tests** covering Tasks CRUD, Notes CRUD, Export/Import, Undo/Redo, and Theme switching; all ✅ passing
+- **playwright.config.ts** — configured with dev server auto-start, single worker, chromium project
+
+### 🐛 Bug Fixes
+- **Delete-task animation jump glitch** — removed conflicting CSS `animate-task-exit` animation that caused a double-animation (exit collapse + FLIP) when deleting a task. Deletion now relies entirely on `useDragReorder`'s FLIP effect for smooth sibling transitions while the removed element simply disappears.
+
+### 🚀 New Features
+- **Editable and deletable list tabs in Notes page** — Notes page list panel now mirrors the Tasks page: per-list rename (`Edit2`) and delete (`Trash2`) buttons with the same animated expand/collapse reveal, inline rename input with Save/Cancel, and new list creation input with Add button
+
+### 🧹 Changes
+- Version bumped to 0.7.9
+
+## v0.7.8 — Storage Infrastructure, Android Export Fix & Import Merge
+
+**Focus**: Replace raw JSON/localStorage with typed schemas, IndexedDB, repository layer, command-pattern history, and fix Android export reliability.
+
+### 🚀 New Features
+- **Zod schemas** (`src/schemas/index.ts`) — runtime validation for all persisted types (Todo, Note, Settings, Tag, TaskList, Subtask, NoteAttachment, DailyGoal) with enum schemas and full store schemas; enables data integrity guarantees
+- **IndexedDB persistence** (`src/storage/storage.ts`) — primary storage backend via `idb-keyval` replaces localStorage for larger quota and reliability; automatic fallback if IndexedDB is unavailable
+- **Migration framework** (`src/storage/migrations.ts`) — schema versioning (`CURRENT_STORAGE_VERSION = 2`), version get/set in IndexedDB, `runMigrations()` with per-version functions for future-proof data migrations
+- **Command-pattern history** (`src/storage/history.ts`) — `History` class stores operations (patches) instead of full snapshots, with batch support, configurable limit, serialization; more memory-efficient than snapshot approach
+- **Repository layer** (`src/storage/repositories/*.repository.ts`) — tasks, notes, settings, and stats repositories abstract storage access behind typed CRUD interfaces with in-memory caching and cache invalidation
+- **Precomputed store indexes** — `useTodoStore` now builds `todoIndexes` (byListId, byTag, byPriority, byId Maps) and `useNotesStore` builds `noteIndexes` (byId Map) on every mutation and on hydrate, providing O(1) lookups via `getTodosByListId()`, `getTodosByTag()`, `getTodoById()`, `getNoteById()`
+- **Memoized derived state** — `useStatsStore` exposes `getTodayGoal()` and `getTodayCompletion()` computed from raw dailyGoals record
+
+### 🐛 Bug Fixes
+- **Android export not saving** — `save()` dialog returns a `content://` SAF URI on Android that `writeTextFile` cannot reliably persist to a user-accessible location. Fixed: added a custom Rust command `save_to_downloads` that writes JSON to app cache, then on Android uses JNI to call a Kotlin `saveToDownloads` method that inserts the file into `MediaStore.Downloads` (no storage permissions needed). On failure, falls back to a copy-paste textarea.
+- **Missing `store:default` capability** — `tauri-plugin-store` was declared in Cargo.toml and imported in the frontend but its permission was absent from `default.json`, causing all data persistence to silently fail in Tauri mode
+- **Missing FS scopes** — `fs:allow-write-text-file` without path scopes prevented the FS plugin from resolving `$DOWNLOAD` on Android
+- **Android manifest XML namespaces** — duplicate `xmlns:tools` declaration and wrong namespace URIs (`http://android.com` instead of `http://schemas.android.com/apk/res/android`, `http://github.com` instead of `http://schemas.android.com/tools`) would cause Android build failure; rolled back to clean manifest
+- **`jni` crate added** — added `jni = "0.21"` dependency to Cargo.toml for JNI calls from Rust to Kotlin on Android
+
+### 🚀 New Features
+- **Full backup export** — new "Full backup" option in the export dropdown produces a v2 payload containing all todos, notes, tags, lists, settings, stats (daily goals + streaks), and sort preferences. Filename format: `boardflow-full-backup-YYYY-MM-DD.json`.
+- **Import restores everything** — v2 full-backup files restore all data via `setState` on each store, preserving all IDs and relationships (task↔list, note↔list, note↔task linking through `linkedTaskId`, tag IDs, subtask arrays, attachment metadata, timestamps). Legacy v1 per-list task imports continue to work unchanged.
+- **Exported `buildTodoIndexes` and `buildNoteIndexes`** — store index builders are now exported from `useTodoStore.ts` and `useNotesStore.ts` so the import can rebuild lookup indexes immediately after restore.
+
+### 🧹 Changes
+- Added `zod` and `idb-keyval` dependencies
+- Added `jni = "0.21"` to Cargo.toml for Rust-to-Kotlin bridge on Android
+- Created `src-tauri/src/save_to_downloads.rs` — custom Tauri command that writes to app cache and on Android copies to `MediaStore.Downloads` via JNI; on desktop copies to user's Downloads folder
+- Added `saveToDownloads` companion method to `MainActivity.kt` — Kotlin method called from Rust via JNI, inserts file into `MediaStore.Downloads` using ContentResolver (no storage permissions required)
+- Updated `src/store/storage.ts` to use IndexedDB via `idb-keyval` as primary adapter, with Tauri store and localStorage as fallbacks
+- `persist` middleware merge callbacks rebuild indexes on hydrate to ensure consistency between persisted and in-memory state
+- Version bumped to 0.7.9
+- Added `@playwright/test` and `playwright` dev dependencies
+- Created 5 E2E test files in `e2e/` with 24 tests
+- Removed `animate-task-exit` CSS class and `task-exit` keyframes from `index.css`
+- Removed `isExiting` state and `setTimeout`-based deletion delay from `TaskItem.tsx`
+
+## v0.7.8 — Storage Infrastructure, Android Export Fix & Import Merge
+
+**Focus**: Extract duplicated patterns into shared hooks, components, and utilities across the entire app.
+
+### 🧹 Changes
+- **Extracted `useClickOutside` hook** — replaced 4+ inline `useRef`+`useEffect` click-outside patterns (SortDropdown, NoteLinkButton, NoteClipButton, RichInsertEditor)
+- **Extracted `useDragReorder` hook** — consolidated drag-to-reorder logic duplicated across TodoList and NotesPage into a single reusable hook with FLIP animation support
+- **Extracted `useTagSuggestions` hook** — unified tag suggestion filtering logic used in TaskEditor, NoteDetails, and Tasks
+- **Created shared UI components** — `PageHeader`, `EmptyState`, `ToggleSwitch`, and `Badge` (DateBadge, TimeBadge, PriorityBadge, TagBadge, MetaDate) replacing 30+ inline duplications across 5 pages
+- **Consolidated `generateId`** — moved from per-store inline logic into `src/utils/id.ts` shared utility
+- **Added undo/redo to NotesStore** — notes store now supports undo/redo (was missing before), matching TodoStore's pattern
+- **Optimized store selectors** — replaced inline `useMemo` wrappers with direct selector access; removed `compareField` utility in favor of inline sort logic
+- **Fixed infinite re-render in `useDragReorder`** — removed redundant `setState` call that created a new object on every render when `draggedId` was null, causing a React bail-out loop
+
 ## v0.7.0 — Notes System
 
 **Focus**: Full notes subsystem with dedicated pages, rich editing, tag & list integration, and task linking.

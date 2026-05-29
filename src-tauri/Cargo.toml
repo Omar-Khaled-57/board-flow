@@ -1,6 +1,6 @@
 [package]
 name = "boardflow"
-version = "0.7.0"
+version = "0.8.0"
 description = "A Tauri App"
 authors = ["you"]
 edition = "2021"
@@ -26,4 +26,6 @@ tauri-plugin-notification = "2.3.3"
 tauri-plugin-store = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
+jni = "0.21"
+ndk-context = "0.1"
 

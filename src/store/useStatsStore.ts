@@ -14,6 +14,9 @@ interface StatsState {
   incrementCompletedToday: () => void;
   setDailyGoal: (goal: number) => void;
   clearStats: () => void;
+
+  getTodayGoal: () => DailyGoal | undefined;
+  getTodayCompletion: () => number;
 }
 
 const getTodayString = () => {
@@ -23,10 +26,21 @@ const getTodayString = () => {
 
 export const useStatsStore = create<StatsState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       dailyGoals: {},
       currentStreak: 0,
       longestStreak: 0,
+
+      getTodayGoal: () => {
+        const today = getTodayString();
+        return get().dailyGoals[today];
+      },
+
+      getTodayCompletion: () => {
+        const goal = get().getTodayGoal();
+        if (!goal) return 0;
+        return goal.goal > 0 ? Math.min(goal.completedCount / goal.goal, 1) : 0;
+      },
 
       incrementCompletedToday: () => {
         let justReachedGoal = false;
@@ -59,7 +73,7 @@ export const useStatsStore = create<StatsState>()(
         });
 
         if (justReachedGoal) {
-          sendNativeNotification('🎯 Daily Goal Reached!', 'You\'ve completed all your tasks for today. Great job!');
+          sendNativeNotification('Goal Achieved 🎯', 'All tasks completed for today. Nice work.', 'icons/Notifications/target.png');
         }
       },
 

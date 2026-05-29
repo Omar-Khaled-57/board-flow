@@ -10,6 +10,12 @@
     "dialog:allow-save",
     "fs:default",
     "fs:allow-write-text-file",
-    "notification:default"
-  ]
+    "notification:default",
+    "store:default"
+  ],
+  "scopes": {
+    "fs": [
+      { "allow": { "path": "$DOWNLOAD/**" } }
+    ]
+  }
 }

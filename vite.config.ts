@@ -14,6 +14,18 @@ export default defineConfig(async () => ({
     VitePWA({ registerType: 'autoUpdate' })
   ],
 
+  build: {
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-katex': ['katex'],
+          'vendor-utils': ['date-fns', 'chrono-node', 'marked', 'zod', 'zustand'],
+        },
+      },
+    },
+  },
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
   // 1. prevent Vite from obscuring rust errors

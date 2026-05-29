@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import Layout from './components/Layout';
-import Tasks from './pages/Tasks';
-import NotesPage from './pages/NotesPage';
-import NoteDetails from './pages/NoteDetails';
-import CalendarPage from './pages/CalendarPage';
-import StatsPage from './pages/StatsPage';
-import Options from './pages/Options';
+const Tasks = lazy(() => import('./pages/Tasks'));
+const NotesPage = lazy(() => import('./pages/NotesPage'));
+const NoteDetails = lazy(() => import('./pages/NoteDetails'));
+const CalendarPage = lazy(() => import('./pages/CalendarPage'));
+const StatsPage = lazy(() => import('./pages/StatsPage'));
+const Options = lazy(() => import('./pages/Options'));
 import SplashScreen from './components/SplashScreen';
 import { isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 
@@ -53,17 +53,19 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Tasks />} />
-          <Route path="notes" element={<NotesPage />} />
-          <Route path="notes/:id" element={<NoteDetails />} />
-          <Route path="calendar" element={<CalendarPage />} />
-          <Route path="stats" element={<StatsPage />} />
-          <Route path="options" element={<Options />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Route>
-      </Routes>
+      <Suspense fallback={null}>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Tasks />} />
+            <Route path="notes" element={<NotesPage />} />
+            <Route path="notes/:id" element={<NoteDetails />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="stats" element={<StatsPage />} />
+            <Route path="options" element={<Options />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 }
