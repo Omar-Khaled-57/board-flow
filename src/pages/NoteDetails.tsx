@@ -261,7 +261,7 @@ const NoteDetails = () => {
   };
 
   return (
-    <div className="h-full flex flex-col min-w-0">
+    <div className="h-full flex flex-col min-w-0 pt-9 pb-5">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
         <button
