@@ -5,7 +5,7 @@ import clsx from 'clsx';
 import { Todo, Priority } from '../types';
 import { useTodoStore } from '../store/useTodoStore';
 import { useStatsStore } from '../store/useStatsStore';
-import { formatTaskDate, formatTaskTime } from '../utils/dateFormat';
+import { formatTaskDate } from '../utils/dateFormat';
 import { playCompleteSound } from '../utils/audio';
 import { parseTaskInput } from '../utils/nlp';
 import { DateBadge, TimeBadge, PriorityBadge, TagBadge } from './Badge';
@@ -224,7 +224,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
         {task.completed ? <CheckCircle2 size={24} className="text-success" /> : <Circle size={24} />}
       </button>
 
-      <div className="flex-1 min-w-0 overflow-hidden">
+      <div className="flex-1 min-w-0 overflow-hidden relative">
         {/* Content area with smooth cross-fade between view and edit modes */}
         <div
           className="transition-all duration-200 ease-out"
@@ -266,7 +266,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
           }}
         >
           <div className="space-y-3">
-            <textarea
+              <textarea
               ref={editInputRef}
               value={editorInput}
               onChange={(e) => setEditorInput(e.target.value)}
@@ -277,16 +277,16 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
               rows={1}
               className="w-full rounded-[2rem] border border-(--border-color) bg-(--card-bg) px-4 py-3 text-sm text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none overflow-hidden"
               aria-label="Edit task text"
+              name="editTaskTitle"
             />
 
             <div className="flex flex-wrap items-center gap-2">
-              <div ref={dateMenuRef} className="flex flex-col gap-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="flex items-center gap-2 shrink-0">
+              <div ref={dateMenuRef} className="flex flex-col gap-1 min-w-0">
+                <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => setDateMenuOpen(o => !o)}
-                      className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors"
+                      className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors shrink-0"
                       aria-label="Open calendar"
                     >
                       <Calendar size={16} className="text-primary" />
@@ -296,12 +296,11 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
                   value={dateInput}
                   onChange={e => setDateInput(e.target.value)}
                   placeholder="Set due date..."
-                  className="w-28 rounded-lg border border-(--border-color) bg-(--bg-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none focus:border-primary"
+                    className="min-w-0 flex-1 rounded-lg border border-(--border-color) bg-(--bg-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none focus:border-primary"
+                    name="dueDate"
                 />
-                  </span>
-              <span className="flex items-center gap-2 shrink-0">
-              <Clock size={16} className="text-primary shrink-0" />
-              <input
+                    <Clock size={16} className="text-primary shrink-0" />
+                    <input
                 type="time"
                 value={timeInput}
                 onChange={e => {
@@ -319,20 +318,14 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
                     setDateInput(formatTaskDate(d.getTime()));
                   }
                 }}
-                className="w-28 rounded-lg border border-(--border-color) bg-(--bg-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 [accent-color:var(--color-primary)] [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
+                className="min-w-0 w-28 rounded-lg border border-(--border-color) bg-(--border-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 [accent-color:var(--color-primary)] [&::-webkit-calendar-picker-indicator]:opacity-60 [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:hover:opacity-100"
+                name="dueTime"
               />
-              </span>
-              {parsedDate && (
-                <span className="text-xs text-primary font-semibold whitespace-nowrap">
-                  {formatTaskDate(parsedDate)}
-                  {formatTaskTime(parsedDate) && <span className="ms-1.5">{formatTaskTime(parsedDate)}</span>}
-                </span>
-              )}
               {editorDueDate && (
                 <button
                   type="button"
                   onClick={() => { setEditorDueDate(undefined); setDateInput(''); setTimeInput(''); }}
-                  className="text-gray-400 hover:text-red-500 transition-colors"
+                  className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
                 >
                   <X size={14} />
                 </button>
@@ -406,9 +399,10 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <label className="text-xs font-medium text-(--text-secondary)">List:</label>
+            <label htmlFor={`task-list-${task.id}`} className="text-xs font-medium text-(--text-secondary)">List:</label>
               <div className="relative flex-1 min-w-[100px]" ref={listDropdownRef}>
                 <button
+                  id={`task-list-${task.id}`}
                   type="button"
                   onClick={() => setListDropdownOpen(o => !o)}
                   className="w-full flex items-center justify-between gap-1 rounded-lg border border-(--border-color) bg-(--bg-color) px-3 py-1.5 text-xs text-(--text-primary) outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 cursor-pointer"
@@ -494,6 +488,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
                   type="text"
                   value={tagInput}
                   onChange={e => { setTagInput(e.target.value); setTagSuggestionOpen(true); setTagSuggestionIndex(-1); }}
+                  name="tag"
                   onKeyDown={e => {
                     if (tagSuggestionOpen && filteredTagSuggestions.length > 0) {
                       if (e.key === 'ArrowDown') { e.preventDefault(); setTagSuggestionIndex(i => Math.min(i + 1, filteredTagSuggestions.length - 1)); return; }

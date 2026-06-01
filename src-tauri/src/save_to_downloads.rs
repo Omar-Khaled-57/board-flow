@@ -21,11 +21,11 @@ pub async fn save_to_downloads(
 
 #[cfg(target_os = "android")]
 fn save_impl(
-    _app: &tauri::AppHandle,
+    app: &tauri::AppHandle,
     temp_path: &PathBuf,
     filename: &str,
 ) -> Result<String, String> {
-    copy_to_downloads_android(temp_path, filename).map(|_| filename.to_string())
+    copy_to_downloads_android(app, temp_path, filename)
 }
 
 #[cfg(not(target_os = "android"))]
@@ -45,9 +45,10 @@ fn save_impl(
 
 #[cfg(target_os = "android")]
 fn copy_to_downloads_android(
+    _app: &tauri::AppHandle,
     temp_path: &PathBuf,
     filename: &str,
-) -> Result<(), String> {
+) -> Result<String, String> {
     use jni::objects::{JClass, JObject, JValue};
     use jni::JavaVM;
 
@@ -76,15 +77,44 @@ fn copy_to_downloads_android(
         .map_err(|e| e.to_string())?;
     let j_filename = env.new_string(filename).map_err(|e| e.to_string())?;
 
-    let class = env
-        .find_class("com/omark/boardflow/MainActivity")
-        .map_err(|e| format!("find_class failed: {}", e))?;
+    // Load MainActivity via the context's ClassLoader instead of find_class,
+    // because FindClass from a native thread uses the system class loader
+    // which cannot find app-specific classes.
+    let class_loader = env
+        .call_method(
+            &context,
+            "getClassLoader",
+            "()Ljava/lang/ClassLoader;",
+            &[],
+        )
+        .map_err(|e| format!("getClassLoader failed: {}", e))?
+        .l()
+        .map_err(|e| format!("extract classLoader failed: {}", e))?;
 
-    let result: bool = env
+    let j_class_name = env
+        .new_string("com.omark.boardflow.MainActivity")
+        .map_err(|e| e.to_string())?;
+
+    let class_obj = env
+        .call_method(
+            &class_loader,
+            "loadClass",
+            "(Ljava/lang/String;)Ljava/lang/Class;",
+            &[JValue::Object(&j_class_name.into())],
+        )
+        .map_err(|e| format!("loadClass failed: {}", e))?
+        .l()
+        .map_err(|e| format!("extract class failed: {}", e))?;
+
+    // Convert JObject to JClass (JClass is a newtype wrapper around JObject)
+    let class: JClass<'_> = (&class_obj).into();
+
+    // The Kotlin method now returns a String: "OK" on success, "ERR_*" on failure
+    let result_obj = env
         .call_static_method(
-            JClass::from(class),
+            &class,
             "saveToDownloads",
-            "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Z",
+            "(Landroid/content/Context;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
             &[
                 JValue::Object(&context),
                 JValue::Object(&j_cache_path),
@@ -92,12 +122,20 @@ fn copy_to_downloads_android(
             ],
         )
         .map_err(|e| format!("call_static_method failed: {}", e))?
-        .z()
-        .map_err(|e| format!("extract boolean failed: {}", e))?;
+        .l()
+        .map_err(|e| format!("extract result string failed: {}", e))?;
 
-    if !result {
-        return Err("MediaStore insert returned false".to_string());
+    let result_jstr: jni::objects::JString<'_> = result_obj.into();
+    let result_java_str = env
+        .get_string(&result_jstr)
+        .map_err(|e| format!("get_string failed: {}", e))?;
+    let result_str = result_java_str.to_string();
+
+    if result_str == "OK" {
+        Ok(filename.to_string())
+    } else if result_str == "ERR_PERMISSION_DENIED" {
+        Err("Storage permission denied. Please grant storage permission in Android settings.".to_string())
+    } else {
+        Err(format!("Export failed: {}", result_str))
     }
-
-    Ok(())
 }

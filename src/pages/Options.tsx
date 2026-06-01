@@ -220,9 +220,17 @@ const Options = () => {
             await invoke('save_to_downloads', { filename, data: json });
             setExportMessage(`Exported ${itemCount} item${itemCount === 1 ? '' : 's'} to your Downloads folder.`);
           } catch (e) {
-            console.error('save_to_downloads failed:', e);
-            setShowFallback(json);
-            setExportMessage('Export to Downloads failed. Copy the JSON below and save it manually.');
+            const msg = e instanceof Error ? e.message : String(e);
+            console.error('save_to_downloads failed:', msg);
+            if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
+              setExportMessage('Storage permission denied. Please grant storage access in your system settings and try again.');
+            } else if (msg.includes('ERR_INSERT_FAILED')) {
+              setExportMessage('Could not access the Downloads folder. Copy the JSON below and save it manually.');
+              setShowFallback(json);
+            } else {
+              setShowFallback(json);
+              setExportMessage('Export to Downloads failed. Copy the JSON below and save it manually.');
+            }
           }
           return;
         }
@@ -562,8 +570,9 @@ const Options = () => {
           <h2 className="text-xl font-semibold mb-4 border-b border-(--border-color) pb-2">Statistics</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <label className="font-medium text-(--text-secondary)">Daily task completion target</label>
+              <label htmlFor="dailyGoal" className="font-medium text-(--text-secondary)">Daily task completion target</label>
               <input
+                id="dailyGoal"
                 type="number"
                 min="1"
                 max="100"

@@ -147,6 +147,7 @@ const TaskEditor = ({ listId }: TaskEditorProps) => {
         className="w-full ps-12 pe-12 py-4 rounded-[2rem] bg-(--card-bg) border border-black dark:border-white shadow-[0_0_15px_var(--color-primary)] focus:shadow-[0_0_25px_var(--color-primary)] focus:border-primary outline-none transition-all text-lg placeholder:text-gray-400 dark:placeholder:text-gray-600"
         placeholder="Add a task... (e.g., 'Buy milk tomorrow !! #tasks')"
         aria-label="New task input"
+        name="newTaskTitle"
       />
       
       <NLPGuide />

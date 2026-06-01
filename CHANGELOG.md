@@ -4,6 +4,31 @@ A running log of every change, fix, and decision during development.
 
 ---
 
+## v0.8.1 — Android Export JNI Fix, Responsive Date/Time & UI Cleanup
+
+**Focus**: Fix Android export root cause (JNI class loading), make date/time picker layout fully responsive, remove duplicate date labels.
+
+### 🐛 Bug Fixes
+- **Android export JNI class loading** — `env.find_class()` from a native async thread uses Android's system class loader which cannot find `MainActivity`. Fixed by using the application context's `getClassLoader().loadClass()` instead, resolving the months-old workaround into a proper fix.
+- **Android storage permissions** — Added `WRITE_EXTERNAL_STORAGE` and `READ_EXTERNAL_STORAGE` (maxSdkVersion=28) to `AndroidManifest.xml` for Android 6–9 compatibility. Kotlin `saveToDownloads` now checks permissions at runtime and returns a descriptive error code.
+- **Android export error reporting** — Kotlin `saveToDownloads` now returns `String` error codes (`ERR_PERMISSION_DENIED`, `ERR_FILE_NOT_FOUND`, `ERR_INSERT_FAILED`, `ERR_EXCEPTION`) instead of a plain boolean. Frontend shows contextual messages per error type.
+- **Android MediaStore fallback** — Added `MediaStore.Files` fallback URI if `MediaStore.Downloads` is unavailable on some devices.
+- **Horizontal scroll in Task container** — Root cause was absolutely-positioned cross-fade divs escaping their parent bounds on wider screens. Fixed by adding `position: relative` to the content wrapper (`TaskItem.tsx:227`), establishing a containing block so the existing `overflow-hidden` actually constrains absolutely-positioned children.
+
+### ✨ UI Improvements
+- **Date/Time pickers now fit on one line** — Removed `flex-wrap` from the date-time row in `TaskItem.tsx`. Changed inputs from fixed `w-28` to `min-w-0 w-20 sm:w-28` so they auto-shrink on small screens. Layout works on mobile portrait, mobile landscape, tablet, and desktop.
+- **Removed duplicate date labels** — When a time is selected, the additional parsed-date text label next to the Time Picker is no longer displayed. The date lives only in the Date Picker field; the time lives only in the Time Picker. The underlying `dueDate` value is still stored correctly as a combined timestamp.
+
+### ♿ Accessibility & Security
+- **Form field names added** — Added missing `name` attributes to all major form fields across 6 files: TaskItem, TaskEditor, Tasks, Options, NoteDetails, NotesPage.
+- **CSP `'unsafe-eval'` allowed** — Added `'unsafe-eval'` to CSP `script-src` in `tauri.conf.json` for dependencies that require it (chrono-node, marked).
+- **Label-input association** — Fixed unassociated `<label>` in TaskItem edit mode (`List:` dropdown) by wiring `htmlFor` / `id` with the task's unique ID. Fixed daily goal input in Options by adding `htmlFor="dailyGoal"` / `id="dailyGoal"`.
+
+### 🧹 Changes
+- Version bumped to 0.8.1
+
+---
+
 ## v0.8.0 — Android Build Fix, Chunk Splitting & Unit Tests
 
 **Focus**: Fix Android build broken by Tauri 2.11.2 API change, optimize bundle size, add unit test infrastructure.

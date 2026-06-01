@@ -324,6 +324,7 @@ const NoteDetails = () => {
               onChange={e => setEditTitle(e.target.value)}
               className="text-3xl font-black text-(--text-primary) bg-transparent border-none outline-none w-full placeholder:text-(--text-secondary)/40"
               placeholder="Note title..."
+              name="noteTitle"
             />
             <div className="relative">
               <textarea
@@ -331,6 +332,7 @@ const NoteDetails = () => {
                 onChange={e => setEditContent(e.target.value)}
                 className="w-full min-h-[300px] bg-(--card-bg) border border-(--border-color) rounded-xl p-4 text-sm text-(--text-primary) resize-y focus:outline-none focus:border-primary transition-colors break-words"
                 placeholder="Start writing..."
+                name="noteContent"
               />
               {/* Floating action buttons */}
               <div className="absolute bottom-4 end-4 flex items-center gap-2">
@@ -502,6 +504,7 @@ const NoteDetails = () => {
                 }}
                 placeholder="Add #tag... (NLP: #tasks tomorrow)"
                 className="flex-1 px-3 py-2 text-sm bg-(--bg-color) border border-(--border-color) rounded-xl text-(--text-primary) placeholder:text-(--text-secondary)/40 focus:outline-none focus:border-primary transition-colors"
+                name="noteTag"
               />
               <button
                 type="button"

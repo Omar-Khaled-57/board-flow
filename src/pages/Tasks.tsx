@@ -125,6 +125,7 @@ const Tasks = () => {
               onChange={e => setSearchQuery(e.target.value)}
               className="min-h-11 ps-9 pe-4 py-2.5 rounded-full bg-[rgba(var(--text-on-primary-rgb),0.1)] border border-[rgba(var(--text-on-primary-rgb),0.2)] text-(--text-on-primary) placeholder-[rgba(var(--text-on-primary-rgb),0.6)] text-sm focus:border-(--text-on-primary) focus:ring-2 focus:ring-[rgba(var(--text-on-primary-rgb),0.3)] outline-none w-full transition-all shadow-sm backdrop-blur-sm"
               aria-label="Search tasks"
+              name="search"
             />
           </div>
 
@@ -306,6 +307,7 @@ const Tasks = () => {
                   if (e.key === 'Enter') handleAddList();
                 }}
                 className="min-h-9 min-w-0 flex-1 rounded-xl bg-(--bg-color) border border-(--border-color) px-3 py-2 text-sm text-(--text-primary) placeholder:text-(--text-secondary) focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-none"
+                name="newList"
               />
               <button
                 type="button"
