@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
 import { version } from '../../package.json';
@@ -212,28 +211,8 @@ const Options = () => {
       }
 
       const isTauri = typeof window !== 'undefined' && typeof (window as any).__TAURI_IPC__ !== 'undefined';
-      const isAndroid = isTauri && navigator.userAgent.toLowerCase().includes('android');
 
       if (isTauri) {
-        if (isAndroid) {
-          try {
-            await invoke('save_to_downloads', { filename, data: json });
-            setExportMessage(`Exported ${itemCount} item${itemCount === 1 ? '' : 's'} to your Downloads folder.`);
-          } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e);
-            console.error('save_to_downloads failed:', msg);
-            if (msg.includes('permission') || msg.includes('PERMISSION_DENIED')) {
-              setExportMessage('Storage permission denied. Please grant storage access in your system settings and try again.');
-            } else if (msg.includes('ERR_INSERT_FAILED')) {
-              setExportMessage('Could not access the Downloads folder. Copy the JSON below and save it manually.');
-              setShowFallback(json);
-            } else {
-              setShowFallback(json);
-              setExportMessage('Export to Downloads failed. Copy the JSON below and save it manually.');
-            }
-          }
-          return;
-        }
         const filePath = await save({
           defaultPath: filename,
           filters: [{ name: 'JSON', extensions: ['json'] }],

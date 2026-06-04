@@ -4,15 +4,12 @@ A running log of every change, fix, and decision during development.
 
 ---
 
-## v0.8.1 — Android Export JNI Fix, Responsive Date/Time & UI Cleanup
+## v0.8.2 — Android Export via SAF, Responsive Date/Time & UI Cleanup
 
-**Focus**: Fix Android export root cause (JNI class loading), make date/time picker layout fully responsive, remove duplicate date labels.
+**Focus**: Replace unreliable JNI/MediaStore export with the Tauri save dialog (SAF) that works on all API levels, fix date/time picker layout, fix accessibility audit issues.
 
 ### 🐛 Bug Fixes
-- **Android export JNI class loading** — `env.find_class()` from a native async thread uses Android's system class loader which cannot find `MainActivity`. Fixed by using the application context's `getClassLoader().loadClass()` instead, resolving the months-old workaround into a proper fix.
-- **Android storage permissions** — Added `WRITE_EXTERNAL_STORAGE` and `READ_EXTERNAL_STORAGE` (maxSdkVersion=28) to `AndroidManifest.xml` for Android 6–9 compatibility. Kotlin `saveToDownloads` now checks permissions at runtime and returns a descriptive error code.
-- **Android export error reporting** — Kotlin `saveToDownloads` now returns `String` error codes (`ERR_PERMISSION_DENIED`, `ERR_FILE_NOT_FOUND`, `ERR_INSERT_FAILED`, `ERR_EXCEPTION`) instead of a plain boolean. Frontend shows contextual messages per error type.
-- **Android MediaStore fallback** — Added `MediaStore.Files` fallback URI if `MediaStore.Downloads` is unavailable on some devices.
+- **Android export not visible** — The JNI+MediaStore path could report success while writing to an app-scoped MediaStore bucket invisible to file managers on Android 11+. Removed the entire custom JNI path (`save_to_downloads.rs`, Kotlin `saveToDownloads`, `jni`/`ndk-context` deps, storage permissions). Android now uses the same Tauri `save()` dialog (SAF) as desktop — user picks the destination, file reliably appears there.
 - **Horizontal scroll in Task container** — Root cause was absolutely-positioned cross-fade divs escaping their parent bounds on wider screens. Fixed by adding `position: relative` to the content wrapper (`TaskItem.tsx:227`), establishing a containing block so the existing `overflow-hidden` actually constrains absolutely-positioned children.
 
 ### ✨ UI Improvements
@@ -25,7 +22,12 @@ A running log of every change, fix, and decision during development.
 - **Label-input association** — Fixed unassociated `<label>` in TaskItem edit mode (`List:` dropdown) by wiring `htmlFor` / `id` with the task's unique ID. Fixed daily goal input in Options by adding `htmlFor="dailyGoal"` / `id="dailyGoal"`.
 
 ### 🧹 Changes
-- Version bumped to 0.8.1
+- Removed `src-tauri/src/save_to_downloads.rs` (Rust JNI command)
+- Removed Kotlin `saveToDownloads` companion object from `MainActivity.kt`
+- Removed `jni = "0.21"` and `ndk-context = "0.1"` from Cargo.toml
+- Removed `WRITE_EXTERNAL_STORAGE` and `READ_EXTERNAL_STORAGE` permissions from AndroidManifest.xml
+- Frontend: Android export now uses the Tauri `save()` dialog (SAF) via `@tauri-apps/plugin-dialog`, same as desktop
+- Version bumped to 0.8.2
 
 ---
 
