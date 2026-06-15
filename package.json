@@ -3,6 +3,7 @@
   "productName": "BoardFlow",
   "private": true,
   "version": "0.8.2",
+  "author": "Omar Khaled <khaledelkhly57@gmail.com>",
   "type": "module",
   "scripts": {
     "dev": "vite",
