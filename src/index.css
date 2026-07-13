@@ -189,4 +189,29 @@
   .number-spinner-primary::-webkit-inner-spin-button:hover {
     background-color: color-mix(in srgb, var(--color-primary) 20%, transparent);
   }
+
+  /* ─── Note content rendered styles ─── */
+  .note-content a {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: opacity 0.15s;
+  }
+  .note-content a:hover {
+    opacity: 0.7;
+  }
+  .note-content strong {
+    font-weight: 600;
+  }
+  .note-content br + br {
+    margin-top: 0.5rem;
+  }
+
+  /* ─── Note item hover accent bar ─── */
+  .note-item {
+    --note-accent: var(--color-primary);
+  }
+  .dark .note-item {
+    --note-accent: color-mix(in srgb, var(--color-primary) 80%, transparent);
+  }
 }

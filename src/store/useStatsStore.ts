@@ -92,7 +92,7 @@ export const useStatsStore = create<StatsState>()(
         dailyGoals: {},
         currentStreak: 0,
         longestStreak: 0,
-      })
+      }),
     }),
     {
       name: 'boardflow-stats',

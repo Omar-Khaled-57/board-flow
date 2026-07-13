@@ -4,6 +4,47 @@ A running log of every change, fix, and decision during development.
 
 ---
 
+## v1.0.0 — Production Release
+
+**Focus**: Ship stats page, export chain, Android share, and build fixes for a clean production build.
+
+### 🚀 New Features
+- **Stats page wave chart** — smooth Catmull-Rom spline (tension 0.3) with gradient fill (3-stop linearGradient fading from 28% → 1% opacity), grid texture pattern (horizontal + vertical lines) clipped to the wave shape and masked to fade out toward the bottom, thick stroked outline on top; all control points clamped within SVG padding to prevent overflow
+- **7-day chart always renders** — even with zero activity, the chart displays a flatline instead of returning an empty state
+- **Android share Intent export** — new Kotlin command writes JSON to `cacheDir/exports/`, generates a `content://` URI via `FileProvider`, and fires `ACTION_SEND` intent. No storage permissions required.
+- **Clipboard fallback tier** — if both file-based export methods fail, JSON is copied to the system clipboard with instructions to paste and save.
+- **4-tier export chain** (`Options.tsx`):
+  - Tier 1: Tauri `save()` dialog → `writeTextFile` (desktop) / `save_to_uri` (Android)
+  - Tier 2: Android share Intent / Desktop blob download
+  - Tier 3: `navigator.clipboard.writeText()`
+  - Tier 4: Textarea copy-paste (last resort)
+
+### 🐛 Bug Fixes
+- **Task toggle jump glitch** — toggling a task's completion state no longer causes a visible disappear-then-slide-back. Fixed by setting `transition: none` on each element before applying the reverse FLIP transform, then only animating elements that actually flipped (tracked via `flippedEls` array), preventing CSS `transition-all` from interfering with the FLIP effect
+- **Export fallback dead on Android** — the blob-download fallback (`<a download>`) never worked in Android WebView. Replaced with a 4-tier chain that guarantees data export on every platform.
+- **Silent failure on Android SAF write** — when `save_to_uri` returned `false`, the old code showed a dead-end error message. Now falls through automatically to the share Intent fallback.
+- **Kotlin compiler version mismatch** — AndroidX dependencies compiled with Kotlin metadata 2.1.0, but `kotlin-gradle-plugin` was pinned to 1.9.25. Upgraded to 2.1.20 to match.
+- **JDK 26 incompatible with Gradle/AGP** — added `org.gradle.java.home` to `gradle.properties` pointing to Android Studio's bundled JBR (JDK 21).
+- **Invalid `@tauri.plugin.command` annotations** — removed from `MainActivity.kt` (does not exist in Tauri v2).
+
+### 🧹 Changes
+- Updated AndroidX dependencies in `app/build.gradle.kts`:
+  - `androidx.activity:activity-ktx` 1.10.1 → 1.13.0
+  - `androidx.webkit:webkit` 1.14.0 → 1.16.0
+  - `com.google.android.material:material` 1.12.0 → 1.14.0
+  - `androidx.lifecycle:lifecycle-process` 2.10.0 → 2.11.0
+- Upgraded `kotlin-gradle-plugin` 1.9.25 → 2.1.20 in `build.gradle.kts`
+- Added `org.gradle.java.home` to `gradle.properties`
+- Removed `@tauri.plugin.command` annotations from `MainActivity.kt`
+- Removed `tryFallbackDownload` helper (replaced by unified tier system)
+- Removed the "Load Sample Data" banner and button from the stats page
+- Removed `seedFakeActivity` from `useStatsStore`
+- Removed unused `TrendingUp`, `Database` icon imports from StatsPage
+- Removed unused `subDays` import from `useStatsStore`
+- Removed dead `saveToUri` and `shareExport` methods from `MainActivity.kt`
+
+---
+
 ## v0.8.2 — Android Export via SAF, Responsive Date/Time & UI Cleanup
 
 **Focus**: Replace unreliable JNI/MediaStore export with the Tauri save dialog (SAF) that works on all API levels, fix date/time picker layout, fix accessibility audit issues.

@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
+import { invoke } from '@tauri-apps/api/core';
 import { version } from '../../package.json';
 import { useTodoStore, buildTodoIndexes } from '../store/useTodoStore';
 import { useNotesStore, buildNoteIndexes } from '../store/useNotesStore';
@@ -211,49 +212,82 @@ const Options = () => {
       }
 
       const isTauri = typeof window !== 'undefined' && typeof (window as any).__TAURI_IPC__ !== 'undefined';
+      const isAndroid = isTauri && navigator.userAgent.includes('Android');
+      const itemCountLabel = `${itemCount} item${itemCount === 1 ? '' : 's'}`;
 
+      // Tier 1: Tauri save dialog (desktop + mobile)
       if (isTauri) {
-        const filePath = await save({
-          defaultPath: filename,
-          filters: [{ name: 'JSON', extensions: ['json'] }],
-        });
-        if (!filePath) {
-          setExportMessage('Export cancelled.');
-          return;
-        }
         try {
-          await writeTextFile(filePath, json);
-          setExportMessage(`Exported ${itemCount} item${itemCount === 1 ? '' : 's'} to ${filePath}.`);
+          const filePath = await save({
+            defaultPath: filename,
+            filters: [{ name: 'JSON', extensions: ['json'] }],
+          });
+          if (!filePath) {
+            setExportMessage('Export cancelled.');
+            return;
+          }
+          if (filePath.startsWith('content://')) {
+            const success = await invoke<boolean>('save_to_uri', { uri: filePath, content: json });
+            if (success) {
+              setExportMessage(`Exported ${itemCountLabel} to ${filePath}.`);
+              return;
+            }
+          } else {
+            await writeTextFile(filePath, json);
+            setExportMessage(`Exported ${itemCountLabel} to ${filePath}.`);
+            return;
+          }
         } catch (writeError) {
-          console.error('Tauri write failed:', writeError);
-          tryFallbackDownload(json, filename, itemCount);
+          console.error('Tauri save/write failed:', writeError);
+        }
+      }
+
+      // Tier 2: Platform-native file export
+      if (isAndroid) {
+        try {
+          const success = await invoke<boolean>('share_export', { content: json, filename });
+          if (success) {
+            setExportMessage(`Exported ${itemCountLabel}. Choose where to save from the share menu.`);
+            return;
+          }
+        } catch (e) {
+          console.error('Share export failed:', e);
         }
       } else {
-        tryFallbackDownload(json, filename, itemCount);
+        try {
+          const file = new Blob([json], { type: 'application/json' });
+          const url = URL.createObjectURL(file);
+          const anchor = document.createElement('a');
+          anchor.href = url;
+          anchor.download = filename;
+          anchor.rel = 'noopener';
+          anchor.style.display = 'none';
+          document.body.appendChild(anchor);
+          anchor.click();
+          document.body.removeChild(anchor);
+          setTimeout(() => URL.revokeObjectURL(url), 10000);
+          setExportMessage(`Exported ${itemCountLabel}. Check your browser's download folder.`);
+          return;
+        } catch {
+          // blob download failed, fall through
+        }
       }
+
+      // Tier 3: Clipboard
+      try {
+        await navigator.clipboard.writeText(json);
+        setExportMessage(`Exported ${itemCountLabel} copied to clipboard. Paste into a text editor and save as .json.`);
+        return;
+      } catch {
+        // clipboard unavailable, fall through
+      }
+
+      // Tier 4: Textarea fallback
+      setShowFallback(json);
+      setExportMessage('Auto-export failed. Copy the JSON below and save it as a .json file.');
     } catch (e) {
       setExportMessage('Export failed: ' + (e instanceof Error ? e.message : 'unknown error'));
       console.error('Export failed:', e);
-    }
-  };
-
-  const tryFallbackDownload = (json: string, filename: string, count: number) => {
-    try {
-      const file = new Blob([json], { type: 'application/json' });
-      const url = URL.createObjectURL(file);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = filename;
-      anchor.rel = 'noopener';
-      anchor.style.display = 'none';
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      setTimeout(() => URL.revokeObjectURL(url), 10000);
-      setExportMessage(`Exported ${count} task${count === 1 ? '' : 's'}. Check your browser's download folder.`);
-    } catch {
-      setShowFallback(json);
-      setExportMessage('Auto-download failed. Copy the JSON below and save it as a .json file.');
     }
   };
 
@@ -437,7 +471,7 @@ const Options = () => {
 
   return (
     <div className="min-h-full flex flex-col gap-6">
-      <PageHeader title="Options" subtitle="Customize your experience" align="center" />
+      <PageHeader title="Options" subtitle="Customize your experience" />
       
       <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 space-y-8">
         

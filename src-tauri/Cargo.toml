@@ -1,6 +1,6 @@
 [package]
 name = "boardflow"
-version = "0.8.2"
+version = "1.0.0"
 description = "A Tauri App"
 authors = ["Omar Khaled"]
 edition = "2021"

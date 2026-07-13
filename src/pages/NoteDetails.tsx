@@ -261,7 +261,7 @@ const NoteDetails = () => {
   };
 
   return (
-    <div className="h-full flex flex-col min-w-0 pt-9 pb-5">
+    <div className="h-full flex flex-col min-w-0 pt-9 pb-5 animate-fade-in">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
         <button
@@ -330,7 +330,7 @@ const NoteDetails = () => {
               <textarea
                 value={editContent}
                 onChange={e => setEditContent(e.target.value)}
-                className="w-full min-h-[300px] bg-(--card-bg) border border-(--border-color) rounded-xl p-4 text-sm text-(--text-primary) resize-y focus:outline-none focus:border-primary transition-colors break-words"
+                className="w-full min-h-[300px] bg-(--card-bg) border border-(--border-color) rounded-xl p-4 text-sm text-(--text-primary) resize-y focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all break-words"
                 placeholder="Start writing..."
                 name="noteContent"
               />
@@ -359,54 +359,53 @@ const NoteDetails = () => {
           </div>
         ) : (
           <div>
-            <h1 className="text-3xl font-black text-(--text-primary) mb-3">
+            <h1 className="text-3xl font-black text-(--text-primary) mb-1 leading-tight">
               {note.title || <span className="text-(--text-secondary) opacity-50">Untitled</span>}
             </h1>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mb-6">
-              <span className="flex items-center gap-1 text-xs text-(--text-secondary) opacity-60">
+            {/* Accent line under title */}
+            <div className="w-12 h-[3px] rounded-full bg-gradient-to-r from-primary/60 to-primary/10 mb-5" />
+
+            <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mb-6">
+              <span className="inline-flex items-center gap-1 text-[11px] text-(--text-secondary) opacity-60 bg-(--bg-color) rounded-full px-2.5 py-1">
+                <Calendar size={11} />
                 Created {formatTaskDate(note.createdAt)} {formatTaskTime(note.createdAt)}
               </span>
-              <span className="text-xs text-(--text-secondary) opacity-40">·</span>
-              <span className="flex items-center gap-1 text-xs text-(--text-secondary) opacity-60">
+              <span className="inline-flex items-center gap-1 text-[11px] text-(--text-secondary) opacity-60 bg-(--bg-color) rounded-full px-2.5 py-1">
                 Edited {formatTaskDate(note.updatedAt)} {formatTaskTime(note.updatedAt)}
               </span>
               {note.linkedTaskId && (
-                <>
-                  <span className="text-xs text-(--text-secondary) opacity-40">·</span>
-                  <span className="text-xs text-primary font-medium">Linked to task</span>
-                </>
+                <span className="inline-flex items-center gap-1 text-[11px] text-primary font-semibold bg-primary/8 rounded-full px-2.5 py-1">
+                  Linked to task
+                </span>
               )}
               {note.dueDate && (
-                <>
-                  <span className="text-xs text-(--text-secondary) opacity-40">·</span>
-                  <span className="flex items-center gap-1 text-xs text-primary opacity-80">
-                    <Calendar size={12} />
-                    {formatTaskDate(note.dueDate)}{formatTaskTime(note.dueDate) ? ` ${formatTaskTime(note.dueDate)}` : ''}
-                  </span>
-                </>
+                <span className="inline-flex items-center gap-1 text-[11px] text-primary opacity-80 bg-primary/8 rounded-full px-2.5 py-1">
+                  <Calendar size={11} />
+                  {formatTaskDate(note.dueDate)}{formatTaskTime(note.dueDate) ? ` ${formatTaskTime(note.dueDate)}` : ''}
+                </span>
               )}
               {note.priority && note.priority !== 'medium' && (
-                <>
-                  <span className="text-xs text-(--text-secondary) opacity-40">·</span>
-                  <span className={`flex items-center gap-1 text-xs font-semibold capitalize ${
-                    note.priority === 'high' ? 'text-danger' : 'text-success'
-                  }`}>
-                    <Flag size={11} />
-                    {note.priority}
-                  </span>
-                </>
+                <span className={`inline-flex items-center gap-1 text-[11px] font-semibold capitalize rounded-full px-2.5 py-1 ${
+                  note.priority === 'high' ? 'text-danger bg-danger/8' : 'text-success bg-success/8'
+                }`}>
+                  <Flag size={11} />
+                  {note.priority}
+                </span>
               )}
             </div>
             <div className="min-w-0">
               <div
-                className="text-sm text-(--text-primary) leading-relaxed overflow-x-auto max-w-full w-fit [word-break:break-word] [overflow-wrap:anywhere]"
+                className="text-[14px] text-(--text-primary) leading-[1.75] overflow-x-auto max-w-full w-fit [word-break:break-word] [overflow-wrap:anywhere] note-content"
                 dangerouslySetInnerHTML={{
                   __html: note.content ? renderNoteContent(note.content) : ''
                 }}
               />
             </div>
             {!note.content && (
-              <span className="text-sm text-(--text-secondary) italic">No content yet</span>
+              <div className="py-12 flex flex-col items-center text-center">
+                <span className="text-sm text-(--text-secondary) italic opacity-50">No content yet</span>
+                <span className="text-xs text-(--text-secondary) opacity-30 mt-1">Click Edit to start writing</span>
+              </div>
             )}
           </div>
         )}
@@ -415,11 +414,11 @@ const NoteDetails = () => {
       {/* Bottom section: Tags */}
       <div className="mt-6 pt-4 border-t border-(--border-color)">
         <div className="flex flex-wrap items-center gap-2 mb-3">
-          <TagIcon size={14} className="text-(--text-secondary) opacity-40" />
+          <TagIcon size={14} className="text-(--text-secondary) opacity-30" />
           {(note?.tags ?? []).map(tag => (
             <span
               key={tag}
-              className="flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md tag-pill text-primary"
+              className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full tag-pill text-primary"
             >
               <TagIcon size={12} />
               {tag}
@@ -436,7 +435,7 @@ const NoteDetails = () => {
           ))}
           {note?.dueDate && (
             <>
-              <span className="flex items-center gap-1 text-[11px] font-semibold text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md">
+              <span className="flex items-center gap-1 text-[11px] font-semibold text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2.5 py-1 rounded-full">
                 <Calendar size={12} />
                 {formatTaskDate(note.dueDate)}
                 {isEditing && (
@@ -450,7 +449,7 @@ const NoteDetails = () => {
                 )}
               </span>
               {formatTaskTime(note.dueDate) && (
-                <span className="flex items-center gap-1 text-[11px] font-semibold text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2 py-1 rounded-md">
+                <span className="flex items-center gap-1 text-[11px] font-semibold text-(--color-primary) bg-(--color-primary-light) dark:text-[#64B5F6] dark:bg-[#64B5F6]/12 dark:border-[#64B5F6]/22 border border-transparent px-2.5 py-1 rounded-full">
                   <Clock size={12} />
                   {formatTaskTime(note.dueDate)}
                   {isEditing && (
@@ -471,7 +470,7 @@ const NoteDetails = () => {
             </>
           )}
           {note?.priority && note.priority !== 'medium' && (
-            <span className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded-md capitalize font-semibold border border-transparent ${
+            <span className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-full capitalize font-semibold border border-transparent ${
               note.priority === 'high'
                 ? 'badge-danger dark:bg-[#EF5350]/12 dark:text-[#EF5350] dark:border-[#EF5350]/22'
                 : 'badge-success dark:bg-[#66BB6A]/12 dark:text-[#66BB6A] dark:border-[#66BB6A]/22'
@@ -503,7 +502,7 @@ const NoteDetails = () => {
                   else handleTagInputKeyDown(e);
                 }}
                 placeholder="Add #tag... (NLP: #tasks tomorrow)"
-                className="flex-1 px-3 py-2 text-sm bg-(--bg-color) border border-(--border-color) rounded-xl text-(--text-primary) placeholder:text-(--text-secondary)/40 focus:outline-none focus:border-primary transition-colors"
+                className="flex-1 px-3 py-2 text-sm bg-(--bg-color) border border-(--border-color) rounded-xl text-(--text-primary) placeholder:text-(--text-secondary)/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 transition-all"
                 name="noteTag"
               />
               <button

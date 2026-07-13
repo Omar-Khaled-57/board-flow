@@ -2,7 +2,7 @@
   "name": "boardflow",
   "productName": "BoardFlow",
   "private": true,
-  "version": "0.8.2",
+  "version": "1.0.0",
   "author": "Omar Khaled <khaledelkhly57@gmail.com>",
   "type": "module",
   "scripts": {
