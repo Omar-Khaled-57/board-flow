@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { DailyGoal } from '../types';
 import { getStorageAdapter } from './storage';
+import { dailyGoalSchema } from '../schemas';
 import { sendNativeNotification } from '../utils/notifications';
 
 const DEFAULT_DAILY_GOAL = 5;
@@ -11,6 +12,8 @@ interface StatsState {
   currentStreak: number;
   longestStreak: number;
 
+  _hasHydrated: boolean;
+
   incrementCompletedToday: () => void;
   setDailyGoal: (goal: number) => void;
   clearStats: () => void;
@@ -19,7 +22,7 @@ interface StatsState {
   getTodayCompletion: () => number;
 }
 
-const getTodayString = () => {
+export const getTodayString = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 };
@@ -27,6 +30,7 @@ const getTodayString = () => {
 export const useStatsStore = create<StatsState>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
       dailyGoals: {},
       currentStreak: 0,
       longestStreak: 0,
@@ -102,6 +106,28 @@ export const useStatsStore = create<StatsState>()(
         currentStreak: state.currentStreak,
         longestStreak: state.longestStreak,
       }),
+      merge: (persisted, current) => {
+        const p = persisted as Partial<StatsState>;
+        const dailyGoals: Record<string, DailyGoal> = {};
+        if (p.dailyGoals && typeof p.dailyGoals === 'object') {
+          for (const [date, goal] of Object.entries(p.dailyGoals)) {
+            const result = dailyGoalSchema.safeParse(goal);
+            if (result.success) dailyGoals[date] = result.data;
+          }
+        }
+        return {
+          ...current,
+          ...p,
+          dailyGoals,
+          currentStreak: typeof p.currentStreak === 'number' && Number.isFinite(p.currentStreak) ? p.currentStreak : 0,
+          longestStreak: typeof p.longestStreak === 'number' && Number.isFinite(p.longestStreak) ? p.longestStreak : 0,
+        };
+      },
+      onRehydrateStorage: () => () => {
+        // Set unconditionally (also on hydration errors, where `state`
+        // would be undefined) so the boot splash never waits on us.
+        useStatsStore.setState({ _hasHydrated: true });
+      },
     }
   )
 );

@@ -8,7 +8,59 @@
   </head>
 
   <body>
-    <!-- Apply saved theme before React mounts to prevent flash of default colors -->
+    <!-- Pre-React boot splash: paints with the page so the user sees the
+         logo instead of a blank window. Removed by App.tsx once all stores
+         have rehydrated (__hideBootSplash), or by the safety timeout below. -->
+    <div id="boot-splash">
+      <div class="boot-logo-wrap">
+        <div class="boot-pulse"></div>
+        <img src="/logo.png" alt="BoardFlow" draggable="false" />
+      </div>
+    </div>
+    <style>
+      @keyframes bfs-spin { to { transform: rotate(360deg); } }
+      @keyframes bfs-pulse {
+        0%   { transform: scale(1);    opacity: 0.45; }
+        75%  { transform: scale(1.4);  opacity: 0; }
+        100% { transform: scale(1.4);  opacity: 0; }
+      }
+      #boot-splash {
+        position: fixed; inset: 0; z-index: 9999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        background: var(--bg-color, #1A1A1A);
+        transition: opacity 0.35s ease;
+      }
+      .boot-logo-wrap { position: relative; width: 96px; height: 96px; }
+      #boot-splash img {
+        position: relative; z-index: 1;
+        width: 96px; height: 96px; object-fit: contain; user-select: none;
+      }
+      /* Rounded square matching the logo's silhouette (≈19% corner curvature,
+         i.e. 153px on the 809px source asset), pulsing out from behind it. */
+      .boot-pulse {
+        position: absolute; inset: 0;
+        border-radius: 19%;
+        background: var(--color-primary, #5b6af0);
+        animation: bfs-pulse 1.8s ease-out infinite;
+      }
+      #boot-splash.done { opacity: 0; pointer-events: none; }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-pulse { animation: none; opacity: 0.25; transform: scale(1.08); }
+      }
+    </style>
+    <script>
+      window.__hideBootSplash = function () {
+        var s = document.getElementById('boot-splash');
+        if (!s || s.dataset.done) return;
+        s.dataset.done = '1';
+        s.classList.add('done');
+        setTimeout(function () { s.remove(); }, 400);
+      };
+      // Safety net: never let the splash stick around if hydration never fires.
+      setTimeout(window.__hideBootSplash, 2500);
+    </script>
+    <!-- Apply saved theme before React mounts to prevent flash of default colors.
+         Palette values must mirror themeVars in src/hooks/useTheme.ts. -->
     <script>
       (function () {
         try {
@@ -23,20 +75,42 @@
               }
               document.documentElement.classList.add(theme);
 
-              var accent = settings.accentColor || '#E84A97';
+              var accent = settings.accentColor || '#5b6af0';
               if (accent.toLowerCase() === '#f5f5f5') {
                 accent = theme === 'dark' ? '#ffffff' : '#111827';
               }
+              var dark = theme === 'dark';
+              var palette = dark
+                ? {
+                    bg: '#1A1A1A',
+                    card: '#222227',
+                    textPrimary: '#FFF5F9',
+                    textSecondary: '#9B8FA5',
+                    border: 'color-mix(in srgb, ' + accent + ' 20%, transparent)',
+                    shadow: 'rgba(0, 0, 0, 0.5)',
+                    textCompleted: '#4A3A52'
+                  }
+                : {
+                    bg: '#FFF5F9',
+                    card: '#FFFFFF',
+                    textPrimary: '#1A1A1A',
+                    textSecondary: '#8B95A5',
+                    border: '#F0D8E8',
+                    shadow: 'rgba(232, 74, 151, 0.10)',
+                    textCompleted: '#BCC5D3'
+                  };
               document.documentElement.style.setProperty('--color-primary', accent);
-              document.documentElement.style.setProperty('--bg-color', theme === 'dark' ? '#0f0f0f' : '#FFF5F9');
-              document.documentElement.style.setProperty('--card-bg', theme === 'dark' ? '#1A1A1A' : '#FFFFFF');
-              document.documentElement.style.setProperty('--text-primary', theme === 'dark' ? '#FFF5F9' : '#1A1A1A');
-              document.documentElement.style.setProperty('--text-secondary', theme === 'dark' ? '#9B8FA5' : '#8B95A5');
-              document.documentElement.style.setProperty('--border-color', theme === 'dark' ? '#2D1A25' : '#F0D8E8');
-              document.documentElement.style.backgroundColor = theme === 'dark' ? '#0f0f0f' : '#FFF5F9';
-              document.documentElement.style.color = theme === 'dark' ? '#FFF5F9' : '#1A1A1A';
-              document.body.style.backgroundColor = theme === 'dark' ? '#0f0f0f' : '#FFF5F9';
-              document.body.style.color = theme === 'dark' ? '#FFF5F9' : '#1A1A1A';
+              document.documentElement.style.setProperty('--bg-color', palette.bg);
+              document.documentElement.style.setProperty('--card-bg', palette.card);
+              document.documentElement.style.setProperty('--text-primary', palette.textPrimary);
+              document.documentElement.style.setProperty('--text-secondary', palette.textSecondary);
+              document.documentElement.style.setProperty('--border-color', palette.border);
+              document.documentElement.style.setProperty('--shadow-color', palette.shadow);
+              document.documentElement.style.setProperty('--text-completed', palette.textCompleted);
+              document.documentElement.style.backgroundColor = palette.bg;
+              document.documentElement.style.color = palette.textPrimary;
+              document.body.style.backgroundColor = palette.bg;
+              document.body.style.color = palette.textPrimary;
 
               var hex = accent.replace('#', '');
               var r = parseInt(hex.substring(0, 2), 16) || 0;

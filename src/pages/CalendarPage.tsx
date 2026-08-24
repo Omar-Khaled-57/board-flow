@@ -11,6 +11,13 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const todos = useTodoStore(state => state.todos);
 
+  // Parse 'yyyy-MM-dd' as a LOCAL date; `new Date(key)` would treat it as
+  // UTC midnight and land on the previous day in negative UTC offsets.
+  const parseLocalDateKey = (key: string) => {
+    const [y, m, d] = key.split('-').map(Number);
+    return new Date(y, m - 1, d);
+  };
+
   const todosByDate = useMemo(() => {
     const map = new Map<string, typeof todos>();
     for (const t of todos) {
@@ -167,7 +174,7 @@ const CalendarPage = () => {
         {selectedDate && (
           <div className="bg-(--card-bg) rounded-xl shadow-sm border border-(--border-color) p-6 animate-fade-slide-down">
             <h3 className="text-lg font-bold text-(--text-primary)">
-              Tasks for {format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')}
+              Tasks for {format(parseLocalDateKey(selectedDate), 'EEEE, MMMM d, yyyy')}
             </h3>
             <p className="text-sm text-(--text-secondary) mb-4">({selectedTodos.length} task{selectedTodos.length !== 1 ? 's' : ''})</p>
 

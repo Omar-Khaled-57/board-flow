@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Note, NoteSortField } from '../types';
 import { getStorageAdapter } from './storage';
+import { importableNoteSchema } from '../schemas';
 import { generateId } from '../utils/id';
 
 interface NotesState {
@@ -10,6 +11,8 @@ interface NotesState {
   noteSortDirection: 'asc' | 'desc';
   past: Note[][];
   future: Note[][];
+
+  _hasHydrated: boolean;
 
   addNote: (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => string;
   updateNote: (id: string, updates: Partial<Note>) => void;
@@ -39,6 +42,7 @@ export function buildNoteIndexes(notes: Note[]) {
 export const useNotesStore = create<NotesState>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
       notes: [],
       noteSortField: 'date-added',
       noteSortDirection: 'desc',
@@ -134,11 +138,26 @@ export const useNotesStore = create<NotesState>()(
         noteSortField: state.noteSortField,
         noteSortDirection: state.noteSortDirection,
       }),
-      merge: (persisted, current) => ({
-        ...current,
-        ...(persisted as Partial<NotesState>),
-        noteIndexes: buildNoteIndexes((persisted as Partial<NotesState>).notes ?? current.notes),
-      }),
+      merge: (persisted, current) => {
+        const p = persisted as Partial<NotesState>;
+        const notes = Array.isArray(p.notes)
+          ? p.notes.flatMap(item => {
+              const result = importableNoteSchema.safeParse(item);
+              return result.success ? [result.data as Note] : [];
+            })
+          : current.notes;
+        return {
+          ...current,
+          ...p,
+          notes,
+          noteIndexes: buildNoteIndexes(notes),
+        };
+      },
+      onRehydrateStorage: () => () => {
+        // Set unconditionally (also on hydration errors, where `state`
+        // would be undefined) so the boot splash never waits on us.
+        useNotesStore.setState({ _hasHydrated: true });
+      },
     }
   )
 );

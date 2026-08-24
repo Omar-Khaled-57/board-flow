@@ -2,9 +2,10 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Todo, Settings, Tag, TaskList } from '../types';
 import { getStorageAdapter } from './storage';
+import { importableTodoSchema, tagSchema, taskListSchema } from '../schemas';
 import { generateId } from '../utils/id';
 
-const HISTORY_LIMIT = 50;
+export const HISTORY_LIMIT = 50;
 
 interface TodoStateShallow {
   todos: Todo[];
@@ -13,6 +14,8 @@ interface TodoStateShallow {
   settings: Settings;
   past: Todo[][];
   future: Todo[][];
+
+  _hasHydrated: boolean;
 
   addTodo: (todo: Omit<Todo, 'id' | 'createdAt'>) => void;
   updateTodo: (id: string, updates: Partial<Todo>) => void;
@@ -93,6 +96,7 @@ export function buildTodoIndexes(todos: Todo[]) {
 export const useTodoStore = create<TodoState>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
       todos: [],
       tags: [
         { id: '1', name: 'Tasks', color: '#e85d5d' },
@@ -251,11 +255,40 @@ export const useTodoStore = create<TodoState>()(
         lists: state.lists,
         settings: state.settings,
       }),
-      merge: (persisted, current) => ({
-        ...current,
-        ...(persisted as Partial<TodoState>),
-        todoIndexes: buildTodoIndexes((persisted as Partial<TodoState>).todos ?? current.todos),
-      }),
+      merge: (persisted, current) => {
+        const p = persisted as Partial<TodoState>;
+        const todos = Array.isArray(p.todos)
+          ? p.todos.flatMap(item => {
+              const result = importableTodoSchema.safeParse(item);
+              return result.success ? [result.data as Todo] : [];
+            })
+          : current.todos;
+        const tags = Array.isArray(p.tags)
+          ? p.tags.flatMap(item => {
+              const result = tagSchema.safeParse(item);
+              return result.success ? [result.data as Tag] : [];
+            })
+          : current.tags;
+        const lists = Array.isArray(p.lists)
+          ? p.lists.flatMap(item => {
+              const result = taskListSchema.safeParse(item);
+              return result.success ? [result.data as TaskList] : [];
+            })
+          : current.lists;
+        return {
+          ...current,
+          ...p,
+          todos,
+          tags,
+          lists,
+          todoIndexes: buildTodoIndexes(todos),
+        };
+      },
+      onRehydrateStorage: () => () => {
+        // Set unconditionally (also on hydration errors, where `state`
+        // would be undefined) so the boot splash never waits on us.
+        useTodoStore.setState({ _hasHydrated: true });
+      },
     }
   )
 );

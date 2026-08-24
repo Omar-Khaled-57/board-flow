@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTheme } from './hooks/useTheme';
 import Layout from './components/Layout';
@@ -8,7 +8,9 @@ const NoteDetails = lazy(() => import('./pages/NoteDetails'));
 const CalendarPage = lazy(() => import('./pages/CalendarPage'));
 const StatsPage = lazy(() => import('./pages/StatsPage'));
 const Options = lazy(() => import('./pages/Options'));
-import SplashScreen from './components/SplashScreen';
+import { useTodoStore } from './store/useTodoStore';
+import { useNotesStore } from './store/useNotesStore';
+import { useStatsStore } from './store/useStatsStore';
 import { isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 
 function App() {
@@ -32,24 +34,16 @@ function App() {
     requestPermissions();
   }, []);
 
-  const [showSplash, setShowSplash] = useState(() => {
-    try {
-      return !localStorage.getItem('hasSeenSplash');
-    } catch {
-      return false;
+  // Dismiss the pre-React boot splash (see index.html) once every persisted
+  // store has finished rehydrating — the user sees the logo, never a blank screen.
+  const todoHydrated = useTodoStore(s => s._hasHydrated);
+  const notesHydrated = useNotesStore(s => s._hasHydrated);
+  const statsHydrated = useStatsStore(s => s._hasHydrated);
+  useEffect(() => {
+    if (todoHydrated && notesHydrated && statsHydrated) {
+      (window as unknown as { __hideBootSplash?: () => void }).__hideBootSplash?.();
     }
-  });
-
-  if (showSplash) {
-    return <SplashScreen onComplete={() => {
-      try {
-        localStorage.setItem('hasSeenSplash', 'true');
-      } catch {
-        // localStorage unavailable — continue silently
-      }
-      setShowSplash(false);
-    }} />;
-  }
+  }, [todoHydrated, notesHydrated, statsHydrated]);
 
   return (
     <BrowserRouter>

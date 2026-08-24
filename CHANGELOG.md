@@ -4,6 +4,37 @@ A running log of every change, fix, and decision during development.
 
 ---
 
+## v1.0.2 — Arabic Hashtags, Native Linux Release & Launch Polish
+
+**Focus**: Full application audit hardening, first-class Arabic hashtag support, native Linux (AppImage/deb/rpm) production builds without Wine, and a branded boot splash with instant dismissal.
+
+### 🚀 New Features
+- **Arabic & Unicode hashtags** (`nlp.ts`) — tag parsing is now Unicode-aware (`#مذاكرة`, `#دراسة-عام`, `#Work_2026` all work). Previously the regex was ASCII-only, so Arabic hashtags were silently ignored.
+- **Hashtags in note content become real tags on save** — typing `#tag` anywhere in a note merges it into the note's tag list when saved; it renders as a chip everywhere tags do. Manually added tags are always preserved.
+- **Hashtag pill rendering** — hashtags render as accent-tinted pills inside the rendered note view (placeholder-protected so URL fragments like `…#section` in markdown links are never mangled).
+- **Branded boot splash** — app logo with a pulsing rounded-square glow replaces the old clipboard-icon splash. Paints instantly from `index.html` (no waiting for JS), fades out the moment all data stores finish rehydrating (2.5 s safety cap), so users never see a blank window.
+- **Native Linux production builds** — explicit AppImage/deb/rpm targets plus npm scripts (`pnpm appimage`, `pnpm linux`, `pnpm windows`). No Wine anywhere in the pipeline.
+- **CI release workflow** (`.github/workflows/release.yml`) — tag push builds Linux bundles, Windows NSIS installer, and a signed Android APK on GitHub runners and attaches them to the release.
+
+### 🐛 Bug Fixes (full audit cycle)
+- **Corrupt imports/persisted state could crash or poison stores** — all rehydration and full-backup imports are now validated with Zod schemas: invalid items are dropped (rehydration) or skipped and counted for the user (import); streak counters are NaN-guarded; legacy items missing newer fields are normalized instead of deleted.
+- **NoteDetails hooks-order crash** — the "note not found" early return sat before later hooks; removing a viewed note via undo/redo crashed React ("Rendered fewer hooks"). All hooks now run unconditionally.
+- **Daily goal edited for the wrong day** — Options used a UTC date key while stats use local dates; outside UTC the goal input silently read/wrote another day's record.
+- **Calendar header showed previous day** — `'yyyy-MM-dd'` parsed as UTC midnight landed on the prior day west of UTC; now parsed as a local date.
+- **Ctrl+Z/Ctrl+Y hijacked text editing** — global undo/redo shortcuts no longer intercept keys typed in inputs/textareas/contentEditable.
+- **Task double-toggle race** — rapid clicks during the 500 ms completion animation net-cancelled the toggle while double-counting daily stats; guarded + button disabled during animation.
+- **AudioContext leak** — completion sound created a new AudioContext per play; now a shared singleton with autoplay-policy resume.
+- **Legacy import wrote to disk per task** — v1-format imports now apply in one batched store transition (one history entry, one persist write).
+- **Theme flash on launch** — pre-paint palette in `index.html` drifted from the runtime theme vars; both themes now mirror `useTheme.ts` exactly (including border/shadow/completed-text vars).
+- **Slow launches** — dev script no longer type-checks first; service worker is excluded from Tauri builds entirely (it was precaching ~1.7 MB per startup for no benefit in the webview).
+
+### 🧹 Changes
+- Removed dead code paths invoking Rust commands that no longer exist (`save_to_uri`, `share_export`) while preserving the export fallback chain order.
+- Deleted unused `useTagSuggestions` hook.
+- README corrected against reality (storage architecture, backend commands, project structure) and extended with per-platform download instructions and Linux build gotchas.
+
+---
+
 ## v1.0.0 — Production Release
 
 **Focus**: Ship stats page, export chain, Android share, and build fixes for a clean production build.

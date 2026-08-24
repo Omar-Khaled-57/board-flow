@@ -5,13 +5,18 @@ import { VitePWA } from "vite-plugin-pwa";
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
+// Set by the Tauri CLI for beforeBuildCommand/beforeDevCommand. The service
+// worker only makes sense in browsers — inside the Tauri webview it would
+// just add startup overhead, so the plugin is excluded there.
+// @ts-expect-error process is a nodejs global
+const isTauriBuild = process.env.TAURI_ENV_PLATFORM !== undefined;
 
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [
-    react(), 
+    react(),
     tailwindcss(),
-    VitePWA({ registerType: 'autoUpdate' })
+    ...(isTauriBuild ? [] : [VitePWA({ registerType: "autoUpdate" })]),
   ],
 
   build: {

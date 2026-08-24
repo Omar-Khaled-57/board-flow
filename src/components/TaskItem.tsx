@@ -44,6 +44,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
   });
   const [debouncedDateInput, setDebouncedDateInput] = useState('');
   const [isCompleting, setIsCompleting] = useState(false);
+  const isCompletingRef = useRef(false);
   const [calendarViewDate, setCalendarViewDate] = useState(() => {
     const d = task.dueDate ? new Date(task.dueDate) : new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -128,15 +129,20 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
   }, [suggestionTags, tagInput]);
 
   const handleToggle = useCallback(() => {
+    // Guard against rapid re-clicks during the completion animation, which
+    // would toggle the task twice and double-count today's stats.
+    if (isCompletingRef.current) return;
     if (task.completed) {
       toggleTodo(task.id);
       return;
     }
+    isCompletingRef.current = true;
     setIsCompleting(true);
     setTimeout(() => {
       toggleTodo(task.id);
       if (settings.soundEnabled) playCompleteSound();
       incrementCompleted();
+      isCompletingRef.current = false;
       setIsCompleting(false);
     }, 500);
   }, [task.id, task.completed, toggleTodo, settings.soundEnabled, incrementCompleted]);
@@ -213,6 +219,7 @@ const TaskItem = ({ task, isDragging, onPointerDown }: TaskItemProps) => {
 
       <button
         onClick={handleToggle}
+        disabled={isCompleting}
         aria-label={task.completed ? 'Mark task incomplete' : 'Mark task complete'}
         className={clsx(
           "mt-1 text-gray-400 hover:text-success overflow-hidden shrink-0 flex items-center justify-center transition-all duration-200 ease-out",

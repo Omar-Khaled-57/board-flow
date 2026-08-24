@@ -20,20 +20,36 @@ BoardFlow is a **local-first productivity app** that combines task management, n
 
 ---
 
+## 📥 Download
+
+Grab the latest build from the [Releases page](https://github.com/Omar-Khaled-57/board-flow/releases):
+
+| Platform | Asset |
+| :--- | :--- |
+| Linux (recommended) | `BoardFlow_<version>_amd64.AppImage` — run directly, no install |
+| Linux (alternative) | `BoardFlow_<version>_amd64.deb` / `_amd64.rpm` |
+| Windows | `BoardFlow_<version>_x64-setup.exe` |
+| Android | `BoardFlow_v<version>.apk` |
+
+Linux assets are available from v1.0.2 onward (and backfilled onto older releases where the code still builds).
+
+---
+
 ## ✨ Features
 
 - **Task management** — create, edit, reorder, and organize tasks into lists with natural-language date parsing (e.g. "Buy milk tomorrow !!"), priorities, subtasks, and tags
+- **Hashtags (any language)** — `#tags` work in tasks and notes with full Unicode support including Arabic (`#مذاكرة`, `#مشتريات`); hashtags written inside note content automatically become note tags on save and render as pills in the note view
 - **Notes system** — full notes page with rich inline editing, tag support, task linking (`linkedTaskId`), file attachments, list management (rename/delete), and sort controls (date added, updated, title, tags)
 - **Drag-and-drop reorder** — pointer-based drag with FLIP animations, ghost portal, and drop indicator on both tasks and notes
 - **Undo/redo** — snapshot-based history (50 levels) with a floating snackbar; global `Ctrl+Z`/`Ctrl+Y` shortcuts
 - **Calendar view** — monthly grid with task density per day, click-to-expand detail panel
 - **Statistics** — daily goal tracking, completion streaks, progress indicators
-- **Full backup & restore** — export all data (tasks, notes, tags, lists, settings, stats) as a single JSON file; import restores everything with all IDs and relationships intact
-- **Android export** — writes directly to `MediaStore.Downloads` via a custom Rust command + Kotlin JNI bridge, no storage permissions required
+- **Full backup & restore** — export all data (tasks, notes, tags, lists, settings, stats) as a single JSON file; import restores everything with all IDs and relationships intact (imports are schema-validated; invalid entries are skipped and reported)
+- **Android export** — uses the Tauri save dialog (SAF) like desktop; if no file can be written, falls back to clipboard/textarea export
 - **Dark/light/system theme** — accent color picker, smooth transitions
 - **Native notifications** — scheduled reminders at task due times ("Upcoming Deadline") via Tauri notification plugin; daily goal achieved alert ("Goal Achieved 🎯") with custom Android notification icons; Web Notification API fallback
 - **Responsive layout** — sidebar on desktop, bottom nav on mobile, adapts to landscape
-- **Testing** — 24 Playwright E2E tests + 25 vitest unit tests (stores + utilities)
+- **Testing** — 24 Playwright E2E tests + 37 vitest unit tests (stores, schemas + utilities)
 
 ---
 
@@ -50,45 +66,37 @@ BoardFlow is a **local-first productivity app** that combines task management, n
 | Schemas | Zod 4 | Runtime validation for all persisted data |
 | Icons | Lucide React | Consistent icon set |
 | Storage | IndexedDB (via `idb-keyval`) | Primary persistence, localStorage fallback |
-| History | Command-pattern `History` class | Patch-based undo/redo (50-level, batchable) |
+| History | Snapshot-based undo/redo | `past`/`future` arrays in the stores (50-level, capped) |
 | NLP Dates | `chrono-node` | Natural language date parsing in task input |
-| Backend | Rust (Tauri plugins) | Notifications, dialog, FS, store, opener; custom `save_to_downloads` command with JNI → Kotlin for Android MediaStore |
+| Backend | Rust (Tauri plugins) | Notifications, dialog, FS, store, opener — no custom commands registered |
 
 ---
 
 ## 📁 Project Structure
 
 ```
-📦 BoardFlow
+ 📦 BoardFlow
  ┣ 📂 src                    # React frontend
  ┃ ┣ 📂 components           # Shared UI (Badge, PageHeader, ToggleSwitch, EmptyState, etc.)
- ┃ ┣ 📂 hooks                # Extracted hooks (useDragReorder, useClickOutside, useTagSuggestions)
+ ┃ ┣ 📂 hooks                # Extracted hooks (useDragReorder, useClickOutside, useNotificationScheduler, useTheme)
  ┃ ┣ 📂 pages                # App screens (Tasks, Notes, NoteDetails, Calendar, Stats, Options)
- ┃ ┣ 📂 store                # Zustand stores (useTodoStore, useNotesStore, useStatsStore)
- ┃ ┣ 📂 storage              # Persistence layer
- ┃ ┃ ┣ 📜 storage.ts         # IndexedDB adapter + repository load/save helpers
- ┃ ┃ ┣ 📜 migrations.ts      # Schema versioning framework + migration runner
- ┃ ┃ ┣ 📜 history.ts         # Command-pattern undo/redo engine
- ┃ ┃ ┗ 📂 repositories/      # Typed CRUD layer (tasks, notes, settings, stats)
- ┃ ┣ 📂 schemas              # Zod schemas for all persisted types
+ ┃ ┣ 📂 store                # Zustand stores (useTodoStore, useNotesStore, useStatsStore) + storage adapter + persist merges
+ ┃ ┣ 📂 schemas              # Zod schemas for all persisted types (strict + import-tolerant variants)
  ┃ ┣ 📂 types                # TypeScript interfaces (Todo, Note, Settings, etc.)
  ┃ ┗ 📂 utils                # Helpers (id generation, date formatting, notifications, NLP)
  ┣ 📂 src-tauri              # Tauri backend (Rust) + build configuration
  ┃ ┣ 📂 src
- ┃ ┃ ┣ 📜 lib.rs             # Plugin registration, command handler setup
- ┃ ┃ ┣ 📜 main.rs            # Binary entry point
- ┃ ┃ ┗ 📜 save_to_downloads.rs  # Custom Rust command + JNI bridge for Android export
+ ┃ ┃ ┣ 📜 lib.rs             # Plugin registration only (no custom commands)
+ ┃ ┃ ┗ 📜 main.rs            # Binary entry point
  ┃ ┣ 📂 capabilities/        # Tauri v2 capability permissions (FS scopes, dialog, notification, store)
- ┃ ┗ 📂 gen/android/         # Android native project (Kotlin MainActivity with MediaStore helper)
+ ┃ ┗ 📂 gen/android/         # Android native project generated by Tauri
  ┗ 📂 dev                    # Development notes and analysis files
 ```
 
 The **storage architecture** is layered:
 1. **Zustand stores** hold in-memory state with precomputed indexes (O(1) lookups by ID, list, tag, priority)
-2. **Repositories** abstract reads/writes with in-memory caching
-3. **IndexedDB** (via `idb-keyval`) is the primary persistence backend; falls back to `localStorage`
-4. **Zod schemas** validate every persisted value at runtime
-5. **Migration framework** handles schema version upgrades
+2. The **persist middleware** writes whole-store state through `src/store/storage.ts`, which picks the backend: Tauri Store plugin (`boardflow.dat`) on desktop/mobile, IndexedDB (`idb-keyval`) on web, `localStorage` fallback
+3. **Zod schemas** validate every persisted value at rehydration and every imported backup; invalid entries are dropped (rehydration) or skipped and reported (import)
 
 ---
 
@@ -125,6 +133,24 @@ npm run dev
 ```bash
 npm run tauri build
 ```
+
+### Linux production build (AppImage — no Wine needed)
+
+The app is a native GTK/WebKitGTK app on Linux; everything is built and packaged on Linux itself.
+
+```bash
+pnpm appimage            # AppImage only → src-tauri/target/release/bundle/appimage/
+pnpm linux               # AppImage + .deb + .rpm
+pnpm windows             # NSIS + MSI (cross-platform configs, build on Windows)
+```
+
+Requirements: Rust toolchain, `webkit2gtk-4.1` and `gtk3` dev packages, plus the usual Tauri Linux dependencies.
+
+Two gotchas that can break the bundling step:
+
+1. **No FUSE available** (containers/headless CI): run with `APPIMAGE_EXTRACT_AND_RUN=1`, e.g.
+   `APPIMAGE_EXTRACT_AND_RUN=1 pnpm appimage`
+2. **Old cached linuxdeploy fails to `strip` modern libraries** (`unknown type [0x13] section '.relr.dyn'`): replace the cached copy Tauri keeps at `~/.cache/tauri/linuxdeploy-x86_64.AppImage` with the latest continuous build from the [linuxdeploy releases](https://github.com/linuxdeploy/linuxdeploy/releases/tag/continuous), then rebuild.
 
 ### Build for Android
 

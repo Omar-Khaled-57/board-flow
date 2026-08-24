@@ -106,3 +106,41 @@ export const statsStoreSchema = z.object({
   currentStreak: z.number(),
   longestStreak: z.number(),
 });
+
+const nullToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((value) => (value === null ? undefined : value), schema);
+
+/**
+ * Import/rehydration-tolerant variants: the exporter serializes missing
+ * optionals as null (e.g. `dueDate: null`), and older app versions may have
+ * persisted items before some fields existed. Salvageable items are
+ * normalized with defaults; only unusable entries fail validation.
+ */
+export const importableTodoSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  notes: nullToUndefined(z.string().optional()),
+  completed: z.boolean().default(false),
+  dueDate: nullToUndefined(z.number().optional()),
+  priority: prioritySchema.default('medium'),
+  tags: z.array(z.string()).default([]),
+  listId: nullToUndefined(z.string().optional()),
+  subtasks: z.array(subtaskSchema).default([]),
+  attachments: nullToUndefined(z.array(z.string()).optional()),
+  notified: nullToUndefined(z.boolean().optional()),
+  createdAt: z.number(),
+});
+
+export const importableNoteSchema = z.object({
+  id: z.string(),
+  title: z.string().default(''),
+  content: z.string().default(''),
+  tags: z.array(z.string()).default([]),
+  listId: nullToUndefined(z.string().optional()),
+  linkedTaskId: nullToUndefined(z.string().optional()),
+  attachments: nullToUndefined(z.array(noteAttachmentSchema).optional()),
+  dueDate: nullToUndefined(z.number().optional()),
+  priority: prioritySchema.default('medium'),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+});

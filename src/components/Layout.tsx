@@ -26,7 +26,19 @@ const Layout = () => {
 
   // Global undo/redo keyboard shortcuts (Ctrl+Z / Ctrl+Y or Cmd+Z / Cmd+Shift+Z)
   useEffect(() => {
+    const isTextEntryTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      return (
+        target.isContentEditable ||
+        target.tagName === 'INPUT' ||
+        target.tagName === 'TEXTAREA' ||
+        target.tagName === 'SELECT'
+      );
+    };
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Let inputs/textareas keep their native text undo.
+      if (isTextEntryTarget(e.target)) return;
       if (e.ctrlKey || e.metaKey) {
         if (e.key === 'z' && !e.shiftKey) {
           e.preventDefault();

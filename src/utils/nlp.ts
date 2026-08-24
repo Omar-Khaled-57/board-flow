@@ -8,6 +8,21 @@ export interface ParsedInput {
   priority: Priority;
 }
 
+/**
+ * Unicode-aware hashtag pattern: matches Latin, Arabic, and any other
+ * letter/numeral systems (plus underscore/hyphen) after a `#`.
+ */
+const TAG_PATTERN = /#([\p{L}\p{N}_-]+)/gu;
+
+/** Extract hashtags from text without removing them (deduped, lowercase). */
+export const extractHashtags = (text: string): string[] => {
+  const tags = new Set<string>();
+  for (const match of text.matchAll(TAG_PATTERN)) {
+    tags.add(match[1].toLowerCase());
+  }
+  return Array.from(tags);
+};
+
 const MONTHS: Record<string, number> = {
   jan: 0, january: 0,
   feb: 1, february: 1,
@@ -148,12 +163,12 @@ export const parseTaskInput = (text: string): ParsedInput => {
   }
 
   const tags: string[] = [];
-  const tagRegex = /#([\w-]+)/g;
+  TAG_PATTERN.lastIndex = 0;
   let match;
-  while ((match = tagRegex.exec(cleanedText)) !== null) {
+  while ((match = TAG_PATTERN.exec(cleanedText)) !== null) {
     tags.push(match[1]);
   }
-  cleanedText = cleanedText.replace(/#[\w-]+/g, '');
+  cleanedText = cleanedText.replace(TAG_PATTERN, '');
 
   let dueDate: number | undefined;
   const flexibleDate = parseFlexibleDate(cleanedText);

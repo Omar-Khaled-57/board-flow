@@ -4,7 +4,7 @@ import { ArrowLeft, Edit2, Trash2, Plus, Tag as TagIcon, X, Save, Calendar, Cloc
 import { useNotesStore } from '../store/useNotesStore';
 import { Note } from '../types';
 import { formatTaskDate, formatTaskTime } from '../utils/dateFormat';
-import { parseTaskInput } from '../utils/nlp';
+import { parseTaskInput, extractHashtags } from '../utils/nlp';
 import katex from 'katex';
 import RichInsertEditor from '../components/RichInsertEditor';
 import NoteLinkButton from '../components/NoteLinkButton';
@@ -54,6 +54,18 @@ const renderNoteContent = (content: string) => {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
+  // Render #hashtags (any script, e.g. Arabic) as tag pills. Done FIRST via
+  // placeholders so hashtag-like URL fragments (`…#section`) inside later
+  // link/bold rewrites can never be mangled, and pills can never end up
+  // inside a generated href attribute. Safe: content is already escaped and
+  // the pattern only matches word characters.
+  const hashHtml: string[] = [];
+  html = html.replace(/#([\p{L}\p{N}_-]+)/gu, (_, tag: string) => {
+    const ph = `\x00HASH${hashHtml.length}\x00`;
+    hashHtml.push(`<span style="color:var(--color-primary);background:color-mix(in srgb,var(--color-primary) 12%,transparent);border-radius:9999px;padding:0 0.375rem;font-weight:500">#${tag}</span>`);
+    return ph;
+  });
+
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" target="_blank" rel="noopener noreferrer" style="color:var(--color-primary);text-decoration:underline">$1</a>'
@@ -73,6 +85,10 @@ const renderNoteContent = (content: string) => {
 
   mathHtml.forEach((rendered, i) => {
     html = html.replace(`\x00MATH${i}\x00`, rendered);
+  });
+
+  hashHtml.forEach((rendered, i) => {
+    html = html.replace(`\x00HASH${i}\x00`, rendered);
   });
 
   return html;
@@ -116,46 +132,6 @@ const NoteDetails = () => {
   }, [tagInput]);
 
   const parsedTagInput = useMemo(() => parseTaskInput(debouncedTagInput), [debouncedTagInput]);
-
-  if (!note) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-(--text-secondary)">
-        <p className="text-lg font-medium">Note not found</p>
-        <button
-          type="button"
-          onClick={() => navigate('/notes')}
-          className="mt-4 text-primary hover:underline text-sm"
-        >
-          Back to notes
-        </button>
-      </div>
-    );
-  }
-
-  const handleStartEdit = () => {
-    setEditTitle(note.title);
-    setEditContent(note.content);
-    setIsEditing(true);
-  };
-
-  const handleSaveEdit = () => {
-    updateNote(note.id, {
-      title: editTitle.trim() || 'Untitled',
-      content: editContent,
-    });
-    setIsEditing(false);
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-  };
-
-  const handleDelete = () => {
-    if (confirm('Delete this note?')) {
-      deleteNote(note.id);
-      navigate('/notes');
-    }
-  };
 
   const allNoteTags = useMemo(() => {
     const all = notes.flatMap(n => n.tags);
@@ -258,6 +234,54 @@ const NoteDetails = () => {
       return prev + ' ' + value;
     });
     setShowRichEditor(false);
+  };
+
+  // Placed after every hook so the hook order stays stable when the note
+  // disappears mid-view (e.g. it is removed by undo/redo or an import).
+  if (!note) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-(--text-secondary)">
+        <p className="text-lg font-medium">Note not found</p>
+        <button
+          type="button"
+          onClick={() => navigate('/notes')}
+          className="mt-4 text-primary hover:underline text-sm"
+        >
+          Back to notes
+        </button>
+      </div>
+    );
+  }
+
+  const handleStartEdit = () => {
+    setEditTitle(note.title);
+    setEditContent(note.content);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = () => {
+    // Hashtags written in the content (any script) become real tags on save,
+    // merged with manually added ones. They are not auto-removed when the
+    // hashtag text is deleted — remove via the tag chip instead.
+    const contentTags = extractHashtags(editContent);
+    const mergedTags = Array.from(new Set([...note.tags, ...contentTags]));
+    updateNote(note.id, {
+      title: editTitle.trim() || 'Untitled',
+      content: editContent,
+      tags: mergedTags,
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    if (confirm('Delete this note?')) {
+      deleteNote(note.id);
+      navigate('/notes');
+    }
   };
 
   return (

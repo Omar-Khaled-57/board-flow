@@ -1,13 +1,21 @@
 import { useRef, useState, useEffect } from 'react';
 import { save } from '@tauri-apps/plugin-dialog';
 import { writeTextFile } from '@tauri-apps/plugin-fs';
-import { invoke } from '@tauri-apps/api/core';
 import { version } from '../../package.json';
-import { useTodoStore, buildTodoIndexes } from '../store/useTodoStore';
+import { useTodoStore, buildTodoIndexes, HISTORY_LIMIT } from '../store/useTodoStore';
 import { useNotesStore, buildNoteIndexes } from '../store/useNotesStore';
-import { useStatsStore } from '../store/useStatsStore';
+import { useStatsStore, getTodayString } from '../store/useStatsStore';
+import {
+  importableTodoSchema,
+  importableNoteSchema,
+  tagSchema,
+  taskListSchema,
+  dailyGoalSchema,
+} from '../schemas';
+import type { z } from 'zod';
 import { Sun, Moon, Monitor, Check } from 'lucide-react';
-import { DailyGoal, Todo } from '../types';
+import { Todo } from '../types';
+import { generateId } from '../utils/id';
 import PageHeader from '../components/PageHeader';
 import ToggleSwitch from '../components/ToggleSwitch';
 
@@ -131,7 +139,6 @@ const Options = () => {
   const todos = useTodoStore(state => state.todos);
   const tags = useTodoStore(state => state.tags);
   const lists = useTodoStore(state => state.lists);
-  const addTodo = useTodoStore(state => state.addTodo);
   const notes = useNotesStore(state => state.notes);
   const noteSortField = useNotesStore(state => state.noteSortField);
   const noteSortDirection = useNotesStore(state => state.noteSortDirection);
@@ -139,7 +146,8 @@ const Options = () => {
   const currentStreak = useStatsStore(state => state.currentStreak);
   const longestStreak = useStatsStore(state => state.longestStreak);
   const setDailyGoal = useStatsStore(state => state.setDailyGoal);
-  const todayKey = new Date().toISOString().slice(0, 10);
+  // Must match the stats store's local-date key, not a UTC date.
+  const todayKey = getTodayString();
   const todayGoal = dailyGoals[todayKey]?.goal ?? 5;
   const [goalInput, setGoalInput] = useState(String(todayGoal));
 
@@ -226,13 +234,10 @@ const Options = () => {
             setExportMessage('Export cancelled.');
             return;
           }
-          if (filePath.startsWith('content://')) {
-            const success = await invoke<boolean>('save_to_uri', { uri: filePath, content: json });
-            if (success) {
-              setExportMessage(`Exported ${itemCountLabel} to ${filePath}.`);
-              return;
-            }
-          } else {
+          // Android SAF `content://` URIs cannot be written by plugin-fs
+          // (no custom Rust command exists for them); skip straight to the
+          // platform fallbacks below.
+          if (!filePath.startsWith('content://')) {
             await writeTextFile(filePath, json);
             setExportMessage(`Exported ${itemCountLabel} to ${filePath}.`);
             return;
@@ -242,18 +247,9 @@ const Options = () => {
         }
       }
 
-      // Tier 2: Platform-native file export
-      if (isAndroid) {
-        try {
-          const success = await invoke<boolean>('share_export', { content: json, filename });
-          if (success) {
-            setExportMessage(`Exported ${itemCountLabel}. Choose where to save from the share menu.`);
-            return;
-          }
-        } catch (e) {
-          console.error('Share export failed:', e);
-        }
-      } else {
+      // Tier 2: Blob download (webview/desktop). Android webviews do not
+      // support anchor downloads, so they fall through to the clipboard.
+      if (!isAndroid) {
         try {
           const file = new Blob([json], { type: 'application/json' });
           const url = URL.createObjectURL(file);
@@ -329,6 +325,20 @@ const Options = () => {
     };
   };
 
+  const collectValid = <T,>(schema: z.ZodType<T>, raw: unknown): T[] =>
+    Array.isArray(raw)
+      ? raw.flatMap(item => {
+          const result = schema.safeParse(item);
+          return result.success ? [result.data] : [];
+        })
+      : [];
+
+  const countInvalid = (raw: unknown, validCount: number): number =>
+    Array.isArray(raw) ? raw.length - validCount : 0;
+
+  const toStreakCount = (value: unknown): number =>
+    typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.floor(value) : 0;
+
   const handleImportTasks = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -344,17 +354,28 @@ const Options = () => {
         const notesState = useNotesStore.getState();
         const statsState = useStatsStore.getState();
 
+        const importedTodos = collectValid(importableTodoSchema, payload.todos);
+        const importedNotes = collectValid(importableNoteSchema, payload.notes);
+        const importedTags = collectValid(tagSchema, payload.tags);
+        const importedLists = collectValid(taskListSchema, payload.lists);
+
+        const invalidCount =
+          countInvalid(payload.todos, importedTodos.length) +
+          countInvalid(payload.notes, importedNotes.length) +
+          countInvalid(payload.tags, importedTags.length) +
+          countInvalid(payload.lists, importedLists.length);
+
         const existingTodoIds = new Set(state.todos.map(t => t.id));
-        const newTodos = ((payload.todos ?? []) as any[]).filter((t: any) => !existingTodoIds.has(t.id));
+        const newTodos = importedTodos.filter(t => !existingTodoIds.has(t.id));
 
         const existingNoteIds = new Set(notesState.notes.map(n => n.id));
-        const newNotes = ((payload.notes ?? []) as any[]).filter((n: any) => !existingNoteIds.has(n.id));
+        const newNotes = importedNotes.filter(n => !existingNoteIds.has(n.id));
 
         const existingTagIds = new Set(state.tags.map(t => t.id));
-        const newTags = ((payload.tags ?? []) as any[]).filter((t: any) => !existingTagIds.has(t.id));
+        const newTags = importedTags.filter(t => !existingTagIds.has(t.id));
 
         const existingListIds = new Set(state.lists.map(l => l.id));
-        const newLists = ((payload.lists ?? []) as any[]).filter((l: any) => !existingListIds.has(l.id));
+        const newLists = importedLists.filter(l => !existingListIds.has(l.id));
 
         const mergedTodos = [...state.todos, ...newTodos];
         const mergedNotes = [...notesState.notes, ...newNotes];
@@ -365,15 +386,17 @@ const Options = () => {
         const mergedGoals = { ...statsState.dailyGoals };
         if (payload.stats?.dailyGoals) {
           for (const [date, goal] of Object.entries(payload.stats.dailyGoals)) {
-            const g = goal as DailyGoal;
+            const result = dailyGoalSchema.safeParse(goal);
+            if (!result.success) continue;
+            const g = result.data;
             const existing = mergedGoals[date];
             if (!existing || g.completedCount > existing.completedCount) {
               mergedGoals[date] = g;
             }
           }
         }
-        const mergedStreak = Math.max(statsState.currentStreak, payload.stats?.currentStreak ?? 0);
-        const mergedLongest = Math.max(statsState.longestStreak, payload.stats?.longestStreak ?? 0);
+        const mergedStreak = Math.max(statsState.currentStreak, toStreakCount(payload.stats?.currentStreak));
+        const mergedLongest = Math.max(statsState.longestStreak, toStreakCount(payload.stats?.longestStreak));
 
         useTodoStore.setState({
           todos: mergedTodos,
@@ -403,26 +426,47 @@ const Options = () => {
         if (newTags.length > 0) parts.push(`${newTags.length} tag${newTags.length === 1 ? '' : 's'}`);
         if (newLists.length > 0) parts.push(`${newLists.length} list${newLists.length === 1 ? '' : 's'}`);
         const imported = parts.join(', ');
-        const skipped = (Array.isArray(payload.todos) ? payload.todos.length : 0) - newTodos.length
-          + (Array.isArray(payload.notes) ? payload.notes.length : 0) - newNotes.length;
-        setImportMessage(`Imported ${imported || '0 items'}.${skipped > 0 ? ` ${skipped} duplicate${skipped === 1 ? '' : 's'} skipped.` : ''} Settings and sort preferences were kept from current session.`);
+        const duplicateCount =
+          (importedTodos.length - newTodos.length) +
+          (importedNotes.length - newNotes.length);
+        let message = `Imported ${imported || '0 items'}.`;
+        if (duplicateCount > 0) message += ` ${duplicateCount} duplicate${duplicateCount === 1 ? '' : 's'} skipped.`;
+        if (invalidCount > 0) message += ` ${invalidCount} invalid item${invalidCount === 1 ? '' : 's'} ignored.`;
+        message += ' Settings and sort preferences were kept from current session.';
+        setImportMessage(message);
         if (fileInputRef.current) fileInputRef.current.value = '';
         return;
       }
 
-      // Version 1 (or unversioned) — legacy per-list import
+      // Version 1 (or unversioned) — legacy per-list import.
+      // Batch into a single state transition: one history entry, one persist
+      // write, instead of N store updates (N disk writes on desktop).
       const rawTasks: any[] = Array.isArray(payload.tasks) ? payload.tasks : Array.isArray(payload) ? payload : [];
-      let importedCount = 0;
+      const normalizedTasks = rawTasks
+        .map(task => normalizeImportedTask(task, targetListId))
+        .filter((task): task is NonNullable<ReturnType<typeof normalizeImportedTask>> => task !== null);
 
-      rawTasks.forEach(task => {
-        const normalized = normalizeImportedTask(task, targetListId);
-        if (normalized) {
-          addTodo(normalized);
-          importedCount += 1;
-        }
-      });
-
-      setImportMessage(`Imported ${importedCount} task${importedCount === 1 ? '' : 's'}.`);
+      if (normalizedTasks.length === 0) {
+        setImportMessage('No valid tasks found in file.');
+      } else {
+        const state = useTodoStore.getState();
+        const now = Date.now();
+        const newTodos: Todo[] = normalizedTasks.map(normalized => ({
+          ...normalized,
+          id: generateId(),
+          createdAt: now,
+        }));
+        const ordered = state.settings.addToTop
+          ? [...newTodos, ...state.todos]
+          : [...state.todos, ...newTodos];
+        useTodoStore.setState({
+          todos: ordered,
+          past: [...state.past, state.todos].slice(-HISTORY_LIMIT),
+          future: [],
+          todoIndexes: buildTodoIndexes(ordered),
+        });
+        setImportMessage(`Imported ${newTodos.length} task${newTodos.length === 1 ? '' : 's'}.`);
+      }
     } catch (error) {
       setImportMessage('Unable to import tasks. Please use a valid BoardFlow task export file.');
     } finally {
