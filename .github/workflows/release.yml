@@ -138,7 +138,10 @@ jobs:
       - name: Organize release files
         run: |
           mkdir -p release
-          find artifacts -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*-setup.exe" -o -name "*.apk" \) -exec mv {} release/ \;
+          find artifacts -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*-setup.exe" \) -exec mv {} release/ \;
+          # Normalize APK name (e.g. BoardFlow_v1.0.2.apk), skipping unsigned builds
+          find artifacts -type f -name "app-universal-release.apk" \
+            -exec mv {} "release/BoardFlow_${GITHUB_REF_NAME}.apk" \;
           cd release && sha256sum * > SHA256SUMS.txt
 
       - name: Create/attach to GitHub release
