@@ -13,9 +13,22 @@ val tauriProperties = Properties().apply {
     }
 }
 
+val keystorePath: String? = System.getenv("TAURI_ANDROID_KEYSTORE_PATH")
+
 android {
     compileSdk = 36
     namespace = "com.omark.boardflow"
+
+    signingConfigs {
+        if (keystorePath != null && file(keystorePath).exists()) {
+            create("ciRelease") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("TAURI_ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("TAURI_ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("TAURI_ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.omark.boardflow"
@@ -39,6 +52,7 @@ android {
         getByName("release") {
             manifestPlaceholders["usesCleartextTraffic"] = "false"
             isMinifyEnabled = true
+            signingConfig = signingConfigs.findByName("ciRelease")
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
