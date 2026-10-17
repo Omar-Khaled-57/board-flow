@@ -113,19 +113,15 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: artifacts
+          merge-multiple: true
 
-      - name: Organize release files
-        run: |
-          mkdir -p release
-          find artifacts -type f \( -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*-setup.exe" -o -name "*.msi" -o -name "*.dmg" \) -exec cp {} release/ \;
-          find artifacts -type f -name "*.apk" -exec cp {} "release/BoardFlow_${TAG}.apk" \; 2>/dev/null || true
-          cd release && sha256sum * > SHA256SUMS.txt || true
+      - name: Attach Android APK if present
         env:
           TAG: ${{ github.event.inputs.tag || github.ref_name }}
-
-      - name: Create/attach to GitHub release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          files: release/*
-          generate_release_notes: true
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          find artifacts -name "*.apk" -exec mv {} "BoardFlow_${TAG}.apk" \; 2>/dev/null || true
+          if ls BoardFlow_${TAG}.apk >/dev/null 2>&1; then
+            sha256sum BoardFlow_${TAG}.apk > SHA256SUMS_apk.txt
+            gh release upload "${TAG}" BoardFlow_${TAG}.apk SHA256SUMS_apk.txt --clobber
+          fi
