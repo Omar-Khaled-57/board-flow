@@ -12,9 +12,9 @@ Dark mode retains the same blue identity against charcoal surfaces.
 | Light canvas / card | ![#FFF5F9](https://img.shields.io/badge/-%23FFF5F9?style=flat-square&color=FFF5F9) `#FFF5F9` / `#FFFFFF` |
 | Dark canvas / card | ![#1A1A1A](https://img.shields.io/badge/-%231A1A1A?style=flat-square&color=1A1A1A) `#1A1A1A` / `#222227` |
 
-![BoardFlow desktop and mobile product preview](../dev/device-mockup.png)
+![BoardFlow desktop and mobile product preview](../public/boardflow-device-mockup.png)
 
 The canonical tokens and light/dark surfaces live in
 [`src/index.css`](../src/index.css). The preview is maintained at
-[`dev/device-mockup.png`](../dev/device-mockup.png). This guide documents the
+[`public/boardflow-device-mockup.png`](../public/boardflow-device-mockup.png). This guide documents the
 existing theme; it does not prescribe a shared hub palette.

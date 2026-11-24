@@ -19,7 +19,7 @@
 BoardFlow is a **local-first productivity app** that combines task management, notes, calendar, and statistics into one cohesive interface. It is for people who want one private workspace without accounts or cloud sync. It runs as a native desktop app (Windows, Linux, macOS) via Tauri and can be packaged for Android. Data stays on your device — no accounts, no cloud, no servers.
 
 <p align="center">
-  <img src="dev/device-mockup.png" alt="BoardFlow responsive desktop and mobile task interface" width="100%">
+  <img src="public/boardflow-device-mockup.png" alt="BoardFlow responsive desktop and mobile task interface" width="100%">
 </p>
 
 ## Visual identity
