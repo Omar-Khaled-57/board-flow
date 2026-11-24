@@ -16,7 +16,25 @@
 
 ---
 
-BoardFlow is a **local-first productivity app** that combines task management, notes, calendar, and statistics into one cohesive interface. It runs as a native desktop app (Windows, Linux, macOS) via Tauri and can be packaged for Android. Data stays on your device — no accounts, no cloud, no servers.
+BoardFlow is a **local-first productivity app** that combines task management, notes, calendar, and statistics into one cohesive interface. It is for people who want one private workspace without accounts or cloud sync. It runs as a native desktop app (Windows, Linux, macOS) via Tauri and can be packaged for Android. Data stays on your device — no accounts, no cloud, no servers.
+
+<p align="center">
+  <img src="dev/device-mockup.png" alt="BoardFlow responsive desktop and mobile task interface" width="100%">
+</p>
+
+## Visual identity
+
+BoardFlow uses a bright periwinkle primary with warm pink and yellow details.
+Light mode pairs it with a soft blush canvas; dark mode switches to charcoal
+surfaces while keeping the blue accent.
+
+| Theme | Canvas | Primary | Supporting colors |
+|---|---|---|---|
+| Light | `#FFF5F9` | `#5b6af0` | berry `#8B1D4B`, sun `#FFD23F` |
+| Dark | `#1A1A1A` | `#5b6af0` | berry `#8B1D4B`, sun `#FFD23F` |
+
+See the [visual identity guide](docs/visual-identity.md) and the canonical
+tokens in [`src/index.css`](src/index.css).
 
 ---
 
@@ -44,12 +62,12 @@ Linux assets are available from v1.0.2 onward (and backfilled onto older release
 - **Undo/redo** — snapshot-based history (50 levels) with a floating snackbar; global `Ctrl+Z`/`Ctrl+Y` shortcuts
 - **Calendar view** — monthly grid with task density per day, click-to-expand detail panel
 - **Statistics** — daily goal tracking, completion streaks, progress indicators
-- **Full backup & restore** — export all data (tasks, notes, tags, lists, settings, stats) as a single JSON file; import restores everything with all IDs and relationships intact (imports are schema-validated; invalid entries are skipped and reported)
+- **Full backup & restore** — export all data (tasks, notes, tags, lists, settings, stats) as a single JSON file; a v2 import merges it into existing data by ID with relationships intact (settings and sort preferences are kept from the current session; imports are schema-validated; invalid entries are skipped and reported)
 - **Android export** — uses the Tauri save dialog (SAF) like desktop; if no file can be written, falls back to clipboard/textarea export
 - **Dark/light/system theme** — accent color picker, smooth transitions
 - **Native notifications** — scheduled reminders at task due times ("Upcoming Deadline") via Tauri notification plugin; daily goal achieved alert ("Goal Achieved 🎯") with custom Android notification icons; Web Notification API fallback
 - **Responsive layout** — sidebar on desktop, bottom nav on mobile, adapts to landscape
-- **Testing** — 24 Playwright E2E tests + 37 vitest unit tests (stores, schemas + utilities)
+- **Testing** — 24 Playwright E2E tests + 45 vitest tests (stores, schemas + utilities)
 
 ---
 
@@ -110,6 +128,23 @@ The **storage architecture** is layered:
 - Android: Android Studio + SDK + NDK
 - iOS/macOS: Xcode
 
+### Command reference
+
+| Command | Purpose |
+| :--- | :--- |
+| `npm install` | Install JavaScript dependencies. |
+| `npm run dev` | Run the web frontend only. |
+| `npm run build` | Type-check and build the web frontend. |
+| `npm run preview` | Preview the built web frontend. |
+| `npm run tauri:dev` | Run the Tauri desktop dev shell. |
+| `npm run test` | Run Vitest once. |
+| `npm run test:watch` | Run Vitest in watch mode. |
+| `npx playwright test` | Run the Playwright E2E suite. |
+| `npm run appimage` | Build an AppImage. |
+| `npm run linux` | Build AppImage, `.deb` and `.rpm`. |
+| `npm run windows` | Build NSIS and MSI installers (on Windows). |
+| `npm run tauri` | Tauri CLI passthrough for commands such as Android builds. |
+
 ### Install
 
 ```bash
@@ -119,7 +154,7 @@ npm install
 ### Run locally (Tauri desktop app)
 
 ```bash
-npm run tauri dev
+npm run tauri:dev
 ```
 
 ### Run web frontend only
@@ -177,12 +212,14 @@ npx playwright test
 
 ### Unit Tests (vitest)
 
-25 vitest tests run in JSDOM with Tauri APIs mocked:
+45 vitest tests run in JSDOM with Tauri APIs mocked:
 
 | File | Tests | Coverage |
 | :--- | :--- | :--- |
 | `useTodoStore.test.ts` | 13 | CRUD, toggle, undo/redo, order, tags, lists, settings, indexes |
 | `useNotesStore.test.ts` | 8 | CRUD, undo/redo, sort prefs, order, updatedAt |
+| `schemas.test.ts` | 12 | Strict + import-tolerant Zod validation for todos, notes, tags and goals |
+| `nlp.test.ts` | 8 | Latin/Unicode hashtags, priorities, Arabic date terms |
 | `id.test.ts` | 4 | Length, uniqueness, charset |
 
 ### E2E Tests (Playwright)
@@ -220,7 +257,20 @@ Export/import uses a versioned JSON schema (v1 per-list tasks, v2 full backup) w
 
 ---
 
+## 📚 Documentation
+
+The full documentation set lives in [`docs/`](docs/README.md): [product](docs/product.md),
+[architecture](docs/architecture.md), [development](docs/development.md),
+[configuration](docs/configuration.md), [testing](docs/testing.md),
+[deployment](docs/deployment.md) and [changelog](docs/changelog.md). The
+[visual identity guide](docs/visual-identity.md) and the running
+[`CHANGELOG.md`](CHANGELOG.md) are kept where they were.
+
+---
+
 ## 📄 License
+
+Licensed under the [MIT License](LICENSE).
 
 <div align="center">
   <i>Built with 🫩 by Omar Khaled El-Khouly.</i>
